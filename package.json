@@ -1,0 +1,16 @@
+{
+  "name": "lwaye",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm --workspace @lwaye/api run dev",
+    "dev:mobile": "npm --workspace @lwaye/mobile run dev",
+    "dev:admin": "npm --workspace @lwaye/admin run dev",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces"
+  }
+}

@@ -1,0 +1,149 @@
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f6f0e8 0%, #e2d4be 100%);
+  color: #223129;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+}
+
+.sidebar {
+  padding: 32px;
+  background: #1f4d3b;
+  color: #fff7eb;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.content {
+  padding: 32px;
+  display: grid;
+  gap: 24px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #e6b54a;
+  font-size: 12px;
+}
+
+.muted {
+  color: #665c51;
+}
+
+.stats {
+  display: grid;
+  gap: 12px;
+}
+
+.statCard,
+.panel,
+.queueItem {
+  background: rgba(255, 247, 235, 0.88);
+  border: 1px solid #dfceb5;
+  border-radius: 20px;
+}
+
+.statCard {
+  padding: 16px;
+  color: #223129;
+}
+
+.statCard span {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.statCard strong {
+  font-size: 28px;
+}
+
+.panel {
+  padding: 24px;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.queueItem {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.approve,
+.resolve {
+  background: #1f4d3b;
+  color: #fff7eb;
+}
+
+.hide {
+  background: #b45309;
+  color: #fff7eb;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.categoryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.categoryList li {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5d6c1;
+}
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
