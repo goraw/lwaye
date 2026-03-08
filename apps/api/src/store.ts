@@ -1,21 +1,14 @@
-import {
-  categories,
-  favorites,
-  listings,
-  locations,
-  messages,
-  profiles,
-  reports,
-  threads,
-  users
-} from "@lwaye/shared";
+import { randomUUID } from "node:crypto";
 import type {
+  Category,
   ChatThread,
   CreateListingRequest,
   CreateReportRequest,
   Favorite,
   FeedQuery,
   Listing,
+  ListingStatus,
+  Location,
   Message,
   Profile,
   Report,
@@ -24,236 +17,636 @@ import type {
   User,
   VerifyOtpRequest
 } from "@lwaye/shared";
+import { pool } from "./db";
 
-function createId(prefix: string): string {
-  return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+type UserRow = {
+  id: string;
+  phone: string;
+  verification_status: User["verificationStatus"];
+  display_name: string;
+  preferred_language: User["preferredLanguage"];
+  profile_type: User["profileType"];
+  status: User["status"];
+  is_phone_verified: boolean;
+};
+
+type ProfileRow = {
+  user_id: string;
+  bio: string | null;
+  business_name: string | null;
+  avatar_url: string | null;
+  joined_at: Date | string;
+  meetup_guidance_accepted: boolean;
+};
+
+type CategoryRow = {
+  id: string;
+  slug: string;
+  label_am: string;
+  label_en: string;
+};
+
+type LocationRow = {
+  id: string;
+  city: string;
+  subcity: string;
+  area_label_am: string;
+  area_label_en: string;
+};
+
+type ListingRow = {
+  id: string;
+  seller_id: string;
+  title: string;
+  description: string;
+  price_etb: number;
+  negotiable: boolean;
+  category_id: string;
+  condition: Listing["condition"];
+  location_id: string;
+  status: ListingStatus;
+  created_at: Date | string;
+  updated_at: Date | string;
+  photo_urls: string[] | null;
+};
+
+type FavoriteRow = {
+  id: string;
+  listing_id: string;
+  user_id: string;
+  created_at: Date | string;
+};
+
+type ThreadRow = {
+  id: string;
+  listing_id: string;
+  buyer_id: string;
+  seller_id: string;
+  status: ChatThread["status"];
+  last_message_at: Date | string;
+};
+
+type MessageRow = {
+  id: string;
+  thread_id: string;
+  sender_id: string;
+  text: string;
+  created_at: Date | string;
+  read_at: Date | string | null;
+};
+
+type ReportRow = {
+  id: string;
+  target_type: Report["targetType"];
+  target_id: string;
+  reporter_id: string;
+  reason_code: string;
+  notes: string | null;
+  status: Report["status"];
+  created_at: Date | string;
+};
+
+function toIso(value: Date | string): string {
+  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
-function now(): string {
-  return new Date().toISOString();
+function mapUser(row: UserRow): User {
+  return {
+    id: row.id,
+    phone: row.phone,
+    verificationStatus: row.verification_status,
+    displayName: row.display_name,
+    preferredLanguage: row.preferred_language,
+    profileType: row.profile_type,
+    status: row.status,
+    isPhoneVerified: row.is_phone_verified
+  };
+}
+
+function mapProfile(row: ProfileRow): Profile {
+  return {
+    userId: row.user_id,
+    bio: row.bio ?? undefined,
+    businessName: row.business_name ?? undefined,
+    avatarUrl: row.avatar_url ?? undefined,
+    joinedAt: toIso(row.joined_at),
+    meetupGuidanceAccepted: row.meetup_guidance_accepted
+  };
+}
+
+function mapCategory(row: CategoryRow): Category {
+  return {
+    id: row.id,
+    slug: row.slug,
+    label: {
+      am: row.label_am,
+      en: row.label_en
+    }
+  };
+}
+
+function mapLocation(row: LocationRow): Location {
+  return {
+    id: row.id,
+    city: row.city,
+    subcity: row.subcity,
+    areaLabel: {
+      am: row.area_label_am,
+      en: row.area_label_en
+    }
+  };
+}
+
+function mapListing(row: ListingRow): Listing {
+  return {
+    id: row.id,
+    sellerId: row.seller_id,
+    title: row.title,
+    description: row.description,
+    priceETB: Number(row.price_etb),
+    negotiable: row.negotiable,
+    categoryId: row.category_id,
+    condition: row.condition,
+    locationId: row.location_id,
+    photoUrls: row.photo_urls ?? [],
+    status: row.status,
+    createdAt: toIso(row.created_at),
+    updatedAt: toIso(row.updated_at)
+  };
+}
+
+function mapFavorite(row: FavoriteRow): Favorite {
+  return {
+    id: row.id,
+    listingId: row.listing_id,
+    userId: row.user_id,
+    createdAt: toIso(row.created_at)
+  };
+}
+
+function mapThread(row: ThreadRow): ChatThread {
+  return {
+    id: row.id,
+    listingId: row.listing_id,
+    buyerId: row.buyer_id,
+    sellerId: row.seller_id,
+    status: row.status,
+    lastMessageAt: toIso(row.last_message_at)
+  };
+}
+
+function mapMessage(row: MessageRow): Message {
+  return {
+    id: row.id,
+    threadId: row.thread_id,
+    senderId: row.sender_id,
+    text: row.text,
+    createdAt: toIso(row.created_at),
+    readAt: row.read_at ? toIso(row.read_at) : undefined
+  };
+}
+
+function mapReport(row: ReportRow): Report {
+  return {
+    id: row.id,
+    targetType: row.target_type,
+    targetId: row.target_id,
+    reporterId: row.reporter_id,
+    reasonCode: row.reason_code,
+    notes: row.notes ?? undefined,
+    status: row.status,
+    createdAt: toIso(row.created_at)
+  };
+}
+
+function createId(prefix: string): string {
+  return `${prefix}-${randomUUID().replace(/-/g, "").slice(0, 12)}`;
+}
+
+function buildFeedWhere(query: FeedQuery) {
+  const conditions = ["l.status = 'active'"];
+  const values: Array<string | number> = [];
+
+  if (query.categoryId) {
+    values.push(query.categoryId);
+    conditions.push(`l.category_id = $${values.length}`);
+  }
+
+  if (query.locationId) {
+    values.push(query.locationId);
+    conditions.push(`l.location_id = $${values.length}`);
+  }
+
+  if (query.minPrice !== undefined) {
+    values.push(query.minPrice);
+    conditions.push(`l.price_etb >= $${values.length}`);
+  }
+
+  if (query.maxPrice !== undefined) {
+    values.push(query.maxPrice);
+    conditions.push(`l.price_etb <= $${values.length}`);
+  }
+
+  if (query.search) {
+    values.push(query.search.trim());
+    conditions.push(`l.search_document @@ websearch_to_tsquery('simple', $${values.length})`);
+  }
+
+  return { conditions, values };
+}
+
+async function queryListings(whereClause: string, values: Array<string | number>) {
+  const result = await pool.query<ListingRow>(
+    `SELECT
+       l.id,
+       l.seller_id,
+       l.title,
+       l.description,
+       l.price_etb,
+       l.negotiable,
+       l.category_id,
+       l.condition,
+       l.location_id,
+       l.status,
+       l.created_at,
+       l.updated_at,
+       COALESCE(array_agg(li.image_url ORDER BY li.sort_order) FILTER (WHERE li.image_url IS NOT NULL), '{}') AS photo_urls
+     FROM listings l
+     LEFT JOIN listing_images li ON li.listing_id = l.id
+     ${whereClause}
+     GROUP BY l.id
+     ORDER BY l.created_at DESC`,
+    values
+  );
+
+  return result.rows.map(mapListing);
 }
 
 export class MarketplaceStore {
-  private users = [...users];
-  private profiles = [...profiles];
-  private listings = [...listings];
-  private favorites = [...favorites];
-  private threads = [...threads];
-  private messages = [...messages];
-  private reports = [...reports];
+  async getBootstrap() {
+    const [usersResult, profilesResult, categoriesResult, locationsResult] = await Promise.all([
+      pool.query<UserRow>(
+        `SELECT id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified
+         FROM users
+         ORDER BY created_at ASC`
+      ),
+      pool.query<ProfileRow>(
+        `SELECT user_id, bio, business_name, avatar_url, joined_at, meetup_guidance_accepted
+         FROM profiles
+         ORDER BY joined_at ASC`
+      ),
+      pool.query<CategoryRow>(
+        `SELECT id, slug, label_am, label_en
+         FROM categories
+         WHERE is_active = TRUE
+         ORDER BY label_en ASC`
+      ),
+      pool.query<LocationRow>(
+        `SELECT id, city, subcity, area_label_am, area_label_en
+         FROM locations
+         WHERE is_active = TRUE
+         ORDER BY city ASC, subcity ASC`
+      )
+    ]);
 
-  getBootstrap() {
     return {
-      users: this.users,
-      profiles: this.profiles,
-      categories,
-      locations
+      users: usersResult.rows.map(mapUser),
+      profiles: profilesResult.rows.map(mapProfile),
+      categories: categoriesResult.rows.map(mapCategory),
+      locations: locationsResult.rows.map(mapLocation)
     };
   }
 
-  startOtp(phone: string) {
+  async startOtp(phone: string) {
+    const id = createId("otp");
+    const code = "1234";
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+    await pool.query(
+      `INSERT INTO phone_verifications (id, phone, code_hash, expires_at)
+       VALUES ($1, $2, $3, $4::timestamptz)`,
+      [id, phone, code, expiresAt]
+    );
+
     return {
       phone,
-      code: "1234",
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString()
+      code,
+      expiresAt
     };
   }
 
-  verifyOtp(input: VerifyOtpRequest): User {
-    const existing = this.users.find((user) => user.phone === input.phone);
-    if (existing) {
-      existing.verificationStatus = "verified";
-      existing.isPhoneVerified = true;
-      existing.displayName = input.displayName;
-      existing.preferredLanguage = input.preferredLanguage;
-      return existing;
+  async verifyOtp(input: VerifyOtpRequest): Promise<User> {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const verificationResult = await client.query<{ id: string }>(
+        `SELECT id
+         FROM phone_verifications
+         WHERE phone = $1
+           AND code_hash = $2
+           AND consumed_at IS NULL
+           AND expires_at > NOW()
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [input.phone, input.code]
+      );
+
+      if (verificationResult.rowCount === 0) {
+        throw new Error("Invalid or expired verification code");
+      }
+
+      await client.query(
+        `UPDATE phone_verifications
+         SET consumed_at = NOW()
+         WHERE id = $1`,
+        [verificationResult.rows[0].id]
+      );
+
+      const existingResult = await client.query<UserRow>(
+        `SELECT id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified
+         FROM users
+         WHERE phone = $1
+         LIMIT 1`,
+        [input.phone]
+      );
+
+      let user: User;
+      if (existingResult.rowCount && existingResult.rows[0]) {
+        const updatedResult = await client.query<UserRow>(
+          `UPDATE users
+           SET verification_status = 'verified',
+               is_phone_verified = TRUE,
+               display_name = $2,
+               preferred_language = $3,
+               updated_at = NOW()
+           WHERE phone = $1
+           RETURNING id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified`,
+          [input.phone, input.displayName, input.preferredLanguage]
+        );
+        user = mapUser(updatedResult.rows[0]);
+      } else {
+        const userId = createId("usr");
+        const createdResult = await client.query<UserRow>(
+          `INSERT INTO users (id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified)
+           VALUES ($1, $2, 'verified', $3, $4, 'consumer', 'active', TRUE)
+           RETURNING id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified`,
+          [userId, input.phone, input.displayName, input.preferredLanguage]
+        );
+
+        await client.query(
+          `INSERT INTO profiles (user_id, meetup_guidance_accepted)
+           VALUES ($1, TRUE)`,
+          [userId]
+        );
+
+        user = mapUser(createdResult.rows[0]);
+      }
+
+      await client.query("COMMIT");
+      return user;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
     }
-
-    const user: User = {
-      id: createId("usr"),
-      phone: input.phone,
-      verificationStatus: "verified",
-      displayName: input.displayName,
-      preferredLanguage: input.preferredLanguage,
-      profileType: "consumer",
-      status: "active",
-      isPhoneVerified: true
-    };
-
-    const profile: Profile = {
-      userId: user.id,
-      joinedAt: now(),
-      meetupGuidanceAccepted: true
-    };
-
-    this.users.push(user);
-    this.profiles.push(profile);
-    return user;
   }
 
-  listFeed(query: FeedQuery) {
+  async listFeed(query: FeedQuery) {
     const limit = query.limit ?? 20;
-    const filtered = this.listings
-      .filter((listing) => listing.status === "active")
-      .filter((listing) => !query.categoryId || listing.categoryId === query.categoryId)
-      .filter((listing) => !query.locationId || listing.locationId === query.locationId)
-      .filter((listing) => !query.minPrice || listing.priceETB >= query.minPrice)
-      .filter((listing) => !query.maxPrice || listing.priceETB <= query.maxPrice)
-      .filter((listing) => {
-        if (!query.search) {
-          return true;
-        }
-        const haystack = `${listing.title} ${listing.description}`.toLowerCase();
-        return haystack.includes(query.search.toLowerCase());
-      })
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    const { conditions, values } = buildFeedWhere(query);
+    values.push(limit + 1);
+    const items = await queryListings(`WHERE ${conditions.join(" AND ")} LIMIT $${values.length}`, values);
 
     return {
-      items: filtered.slice(0, limit),
-      nextCursor: filtered.length > limit ? filtered[limit - 1]?.id : undefined
+      items: items.slice(0, limit),
+      nextCursor: items.length > limit ? items[limit]?.id : undefined
     };
   }
 
-  getListing(listingId: string) {
-    return this.listings.find((listing) => listing.id === listingId);
+  async getListing(listingId: string) {
+    const items = await queryListings("WHERE l.id = $1", [listingId]);
+    return items[0];
   }
 
-  createListing(input: CreateListingRequest): Listing {
-    const timestamp = now();
-    const listing: Listing = {
-      id: createId("lst"),
-      sellerId: input.sellerId,
-      title: input.title,
-      description: input.description,
-      priceETB: input.priceETB,
-      negotiable: input.negotiable,
-      categoryId: input.categoryId,
-      condition: input.condition,
-      locationId: input.locationId,
-      photoUrls: input.photoUrls,
-      status: "active",
-      createdAt: timestamp,
-      updatedAt: timestamp
-    };
+  async createListing(input: CreateListingRequest): Promise<Listing> {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const listingId = createId("lst");
+      const listingResult = await client.query<ListingRow>(
+        `INSERT INTO listings (
+           id, seller_id, title, description, price_etb, negotiable, category_id, condition, location_id, status, published_at
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', NOW())
+         RETURNING id, seller_id, title, description, price_etb, negotiable, category_id, condition, location_id, status, created_at, updated_at, ARRAY[]::text[] AS photo_urls`,
+        [
+          listingId,
+          input.sellerId,
+          input.title,
+          input.description,
+          input.priceETB,
+          input.negotiable,
+          input.categoryId,
+          input.condition,
+          input.locationId
+        ]
+      );
 
-    this.listings.unshift(listing);
-    return listing;
-  }
+      for (const [index, url] of input.photoUrls.entries()) {
+        await client.query(
+          `INSERT INTO listing_images (id, listing_id, image_url, sort_order)
+           VALUES ($1, $2, $3, $4)`,
+          [createId("img"), listingId, url, index]
+        );
+      }
 
-  updateListingStatus(listingId: string, status: Listing["status"]) {
-    const listing = this.getListing(listingId);
-    if (!listing) {
-      return undefined;
+      await client.query("COMMIT");
+      return {
+        ...mapListing(listingResult.rows[0]),
+        photoUrls: input.photoUrls
+      };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
     }
-    listing.status = status;
-    listing.updatedAt = now();
-    return listing;
   }
 
-  listFavorites(userId: string) {
-    return this.favorites.filter((favorite) => favorite.userId === userId);
+  async updateListingStatus(listingId: string, status: ListingStatus) {
+    const result = await pool.query<ListingRow>(
+      `UPDATE listings
+       SET status = $2,
+           published_at = CASE WHEN $2 = 'active' THEN COALESCE(published_at, NOW()) ELSE published_at END,
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, seller_id, title, description, price_etb, negotiable, category_id, condition, location_id, status, created_at, updated_at,
+         COALESCE((SELECT array_agg(image_url ORDER BY sort_order) FROM listing_images WHERE listing_id = listings.id), '{}') AS photo_urls`,
+      [listingId, status]
+    );
+    return result.rows[0] ? mapListing(result.rows[0]) : undefined;
   }
 
-  toggleFavorite(userId: string, listingId: string): Favorite[] {
-    const existing = this.favorites.find((favorite) => favorite.userId === userId && favorite.listingId === listingId);
-    if (existing) {
-      this.favorites = this.favorites.filter((favorite) => favorite.id !== existing.id);
+  async listFavorites(userId: string) {
+    const result = await pool.query<FavoriteRow>(
+      `SELECT id, listing_id, user_id, created_at
+       FROM favorites
+       WHERE user_id = $1
+       ORDER BY created_at DESC`,
+      [userId]
+    );
+    return result.rows.map(mapFavorite);
+  }
+
+  async toggleFavorite(userId: string, listingId: string) {
+    const existing = await pool.query<{ id: string }>(
+      `SELECT id FROM favorites WHERE user_id = $1 AND listing_id = $2 LIMIT 1`,
+      [userId, listingId]
+    );
+
+    if (existing.rowCount && existing.rows[0]) {
+      await pool.query(`DELETE FROM favorites WHERE id = $1`, [existing.rows[0].id]);
       return this.listFavorites(userId);
     }
-    this.favorites.push({
-      id: createId("fav"),
-      userId,
-      listingId,
-      createdAt: now()
-    });
+
+    await pool.query(
+      `INSERT INTO favorites (id, listing_id, user_id)
+       VALUES ($1, $2, $3)`,
+      [createId("fav"), listingId, userId]
+    );
     return this.listFavorites(userId);
   }
 
-  startThread(input: StartThreadRequest): ChatThread {
-    const listing = this.getListing(input.listingId);
-    if (!listing) {
+  async startThread(input: StartThreadRequest): Promise<ChatThread> {
+    const existing = await pool.query<ThreadRow>(
+      `SELECT id, listing_id, buyer_id, seller_id, status, last_message_at
+       FROM chat_threads
+       WHERE listing_id = $1 AND buyer_id = $2
+       LIMIT 1`,
+      [input.listingId, input.buyerId]
+    );
+
+    if (existing.rowCount && existing.rows[0]) {
+      return mapThread(existing.rows[0]);
+    }
+
+    const listingResult = await pool.query<{ seller_id: string }>(
+      `SELECT seller_id FROM listings WHERE id = $1 LIMIT 1`,
+      [input.listingId]
+    );
+    if (!listingResult.rowCount || !listingResult.rows[0]) {
       throw new Error("Listing not found");
     }
 
-    const existing = this.threads.find(
-      (thread) => thread.listingId === input.listingId && thread.buyerId === input.buyerId
+    const result = await pool.query<ThreadRow>(
+      `INSERT INTO chat_threads (id, listing_id, buyer_id, seller_id, status, last_message_at)
+       VALUES ($1, $2, $3, $4, 'active', NOW())
+       RETURNING id, listing_id, buyer_id, seller_id, status, last_message_at`,
+      [createId("thr"), input.listingId, input.buyerId, listingResult.rows[0].seller_id]
     );
 
-    if (existing) {
-      return existing;
+    return mapThread(result.rows[0]);
+  }
+
+  async listThreads(userId: string) {
+    const result = await pool.query<ThreadRow>(
+      `SELECT id, listing_id, buyer_id, seller_id, status, last_message_at
+       FROM chat_threads
+       WHERE buyer_id = $1 OR seller_id = $1
+       ORDER BY last_message_at DESC`,
+      [userId]
+    );
+    return result.rows.map(mapThread);
+  }
+
+  async listMessages(threadId: string) {
+    const result = await pool.query<MessageRow>(
+      `SELECT id, thread_id, sender_id, text, created_at, read_at
+       FROM messages
+       WHERE thread_id = $1
+       ORDER BY created_at ASC`,
+      [threadId]
+    );
+    return result.rows.map(mapMessage);
+  }
+
+  async sendMessage(input: SendMessageRequest): Promise<Message> {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const threadResult = await client.query<{ id: string }>(
+        `SELECT id FROM chat_threads WHERE id = $1 LIMIT 1`,
+        [input.threadId]
+      );
+      if (!threadResult.rowCount) {
+        throw new Error("Thread not found");
+      }
+
+      const result = await client.query<MessageRow>(
+        `INSERT INTO messages (id, thread_id, sender_id, text)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id, thread_id, sender_id, text, created_at, read_at`,
+        [createId("msg"), input.threadId, input.senderId, input.text]
+      );
+
+      await client.query(
+        `UPDATE chat_threads
+         SET last_message_at = NOW(), updated_at = NOW()
+         WHERE id = $1`,
+        [input.threadId]
+      );
+
+      await client.query("COMMIT");
+      return mapMessage(result.rows[0]);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
     }
-
-    const thread: ChatThread = {
-      id: createId("thr"),
-      listingId: input.listingId,
-      buyerId: input.buyerId,
-      sellerId: listing.sellerId,
-      status: "active",
-      lastMessageAt: now()
-    };
-
-    this.threads.push(thread);
-    return thread;
   }
 
-  listThreads(userId: string) {
-    return this.threads.filter((thread) => thread.buyerId === userId || thread.sellerId === userId);
+  async createReport(input: CreateReportRequest): Promise<Report> {
+    const result = await pool.query<ReportRow>(
+      `INSERT INTO reports (id, target_type, target_id, reporter_id, reason_code, notes, status)
+       VALUES ($1, $2, $3, $4, $5, $6, 'open')
+       RETURNING id, target_type, target_id, reporter_id, reason_code, notes, status, created_at`,
+      [createId("rep"), input.targetType, input.targetId, input.reporterId, input.reasonCode, input.notes ?? null]
+    );
+    return mapReport(result.rows[0]);
   }
 
-  listMessages(threadId: string) {
-    return this.messages
-      .filter((message) => message.threadId === threadId)
-      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  async listReports() {
+    const result = await pool.query<ReportRow>(
+      `SELECT id, target_type, target_id, reporter_id, reason_code, notes, status, created_at
+       FROM reports
+       ORDER BY created_at DESC`
+    );
+    return result.rows.map(mapReport);
   }
 
-  sendMessage(input: SendMessageRequest): Message {
-    const thread = this.threads.find((entry) => entry.id === input.threadId);
-    if (!thread) {
-      throw new Error("Thread not found");
-    }
-    const message: Message = {
-      id: createId("msg"),
-      threadId: input.threadId,
-      senderId: input.senderId,
-      text: input.text,
-      createdAt: now()
-    };
-    thread.lastMessageAt = message.createdAt;
-    this.messages.push(message);
-    return message;
+  async resolveReport(reportId: string) {
+    const result = await pool.query<ReportRow>(
+      `UPDATE reports
+       SET status = 'resolved', updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, target_type, target_id, reporter_id, reason_code, notes, status, created_at`,
+      [reportId]
+    );
+    return result.rows[0] ? mapReport(result.rows[0]) : undefined;
   }
 
-  createReport(input: CreateReportRequest): Report {
-    const report: Report = {
-      id: createId("rep"),
-      status: "open",
-      createdAt: now(),
-      ...input
-    };
-    this.reports.push(report);
-    return report;
-  }
-
-  listReports() {
-    return [...this.reports].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }
-
-  resolveReport(reportId: string) {
-    const report = this.reports.find((entry) => entry.id === reportId);
-    if (!report) {
-      return undefined;
-    }
-    report.status = "resolved";
-    return report;
-  }
-
-  suspendUser(userId: string) {
-    const user = this.users.find((entry) => entry.id === userId);
-    if (!user) {
-      return undefined;
-    }
-    user.status = "suspended";
-    return user;
+  async suspendUser(userId: string) {
+    const result = await pool.query<UserRow>(
+      `UPDATE users
+       SET status = 'suspended', updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified`,
+      [userId]
+    );
+    return result.rows[0] ? mapUser(result.rows[0]) : undefined;
   }
 }
 

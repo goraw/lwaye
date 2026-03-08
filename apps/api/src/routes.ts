@@ -11,23 +11,27 @@ function one(value: string | string[] | undefined): string | undefined {
   return value;
 }
 
-apiRouter.get("/health", (_request: Request, response: Response) => {
+apiRouter.get("/health", async (_request: Request, response: Response) => {
   response.json({ status: "ok" });
 });
 
-apiRouter.get("/v1/bootstrap", (_request: Request, response: Response) => {
-  response.json(store.getBootstrap());
+apiRouter.get("/v1/bootstrap", async (_request: Request, response: Response) => {
+  response.json(await store.getBootstrap());
 });
 
-apiRouter.post("/v1/auth/start-otp", (request: Request, response: Response) => {
-  response.json(store.startOtp(request.body.phone));
+apiRouter.post("/v1/auth/start-otp", async (request: Request, response: Response) => {
+  response.json(await store.startOtp(request.body.phone));
 });
 
-apiRouter.post("/v1/auth/verify-otp", (request: Request, response: Response) => {
-  response.json(store.verifyOtp(request.body));
+apiRouter.post("/v1/auth/verify-otp", async (request: Request, response: Response) => {
+  try {
+    response.json(await store.verifyOtp(request.body));
+  } catch (error) {
+    response.status(400).json({ message: (error as Error).message });
+  }
 });
 
-apiRouter.get("/v1/listings", (request: Request, response: Response) => {
+apiRouter.get("/v1/listings", async (request: Request, response: Response) => {
   const search = one(request.query.search as string | string[] | undefined);
   const categoryId = one(request.query.categoryId as string | string[] | undefined);
   const locationId = one(request.query.locationId as string | string[] | undefined);
@@ -36,7 +40,7 @@ apiRouter.get("/v1/listings", (request: Request, response: Response) => {
   const limit = one(request.query.limit as string | string[] | undefined);
 
   response.json(
-    store.listFeed({
+    await store.listFeed({
       search,
       categoryId,
       locationId,
@@ -47,9 +51,9 @@ apiRouter.get("/v1/listings", (request: Request, response: Response) => {
   );
 });
 
-apiRouter.get("/v1/listings/:listingId", (request: Request, response: Response) => {
+apiRouter.get("/v1/listings/:listingId", async (request: Request, response: Response) => {
   const listingId = one(request.params.listingId);
-  const listing = listingId ? store.getListing(listingId) : undefined;
+  const listing = listingId ? await store.getListing(listingId) : undefined;
   if (!listing) {
     response.status(404).json({ message: "Listing not found" });
     return;
@@ -57,13 +61,13 @@ apiRouter.get("/v1/listings/:listingId", (request: Request, response: Response) 
   response.json(listing);
 });
 
-apiRouter.post("/v1/listings", (request: Request, response: Response) => {
-  response.status(201).json(store.createListing(request.body));
+apiRouter.post("/v1/listings", async (request: Request, response: Response) => {
+  response.status(201).json(await store.createListing(request.body));
 });
 
-apiRouter.patch("/v1/listings/:listingId/status", (request: Request, response: Response) => {
+apiRouter.patch("/v1/listings/:listingId/status", async (request: Request, response: Response) => {
   const listingId = one(request.params.listingId);
-  const listing = listingId ? store.updateListingStatus(listingId, request.body.status) : undefined;
+  const listing = listingId ? await store.updateListingStatus(listingId, request.body.status) : undefined;
   if (!listing) {
     response.status(404).json({ message: "Listing not found" });
     return;
@@ -71,58 +75,58 @@ apiRouter.patch("/v1/listings/:listingId/status", (request: Request, response: R
   response.json(listing);
 });
 
-apiRouter.get("/v1/favorites/:userId", (request: Request, response: Response) => {
+apiRouter.get("/v1/favorites/:userId", async (request: Request, response: Response) => {
   const userId = one(request.params.userId);
-  response.json(userId ? store.listFavorites(userId) : []);
+  response.json(userId ? await store.listFavorites(userId) : []);
 });
 
-apiRouter.post("/v1/favorites/:userId/:listingId", (request: Request, response: Response) => {
+apiRouter.post("/v1/favorites/:userId/:listingId", async (request: Request, response: Response) => {
   const userId = one(request.params.userId);
   const listingId = one(request.params.listingId);
   if (!userId || !listingId) {
     response.status(400).json({ message: "User and listing are required" });
     return;
   }
-  response.json(store.toggleFavorite(userId, listingId));
+  response.json(await store.toggleFavorite(userId, listingId));
 });
 
-apiRouter.post("/v1/threads", (request: Request, response: Response) => {
+apiRouter.post("/v1/threads", async (request: Request, response: Response) => {
   try {
-    response.status(201).json(store.startThread(request.body));
+    response.status(201).json(await store.startThread(request.body));
   } catch (error) {
     response.status(400).json({ message: (error as Error).message });
   }
 });
 
-apiRouter.get("/v1/threads/:userId", (request: Request, response: Response) => {
+apiRouter.get("/v1/threads/:userId", async (request: Request, response: Response) => {
   const userId = one(request.params.userId);
-  response.json(userId ? store.listThreads(userId) : []);
+  response.json(userId ? await store.listThreads(userId) : []);
 });
 
-apiRouter.get("/v1/messages/:threadId", (request: Request, response: Response) => {
+apiRouter.get("/v1/messages/:threadId", async (request: Request, response: Response) => {
   const threadId = one(request.params.threadId);
-  response.json(threadId ? store.listMessages(threadId) : []);
+  response.json(threadId ? await store.listMessages(threadId) : []);
 });
 
-apiRouter.post("/v1/messages", (request: Request, response: Response) => {
+apiRouter.post("/v1/messages", async (request: Request, response: Response) => {
   try {
-    response.status(201).json(store.sendMessage(request.body));
+    response.status(201).json(await store.sendMessage(request.body));
   } catch (error) {
     response.status(400).json({ message: (error as Error).message });
   }
 });
 
-apiRouter.post("/v1/reports", (request: Request, response: Response) => {
-  response.status(201).json(store.createReport(request.body));
+apiRouter.post("/v1/reports", async (request: Request, response: Response) => {
+  response.status(201).json(await store.createReport(request.body));
 });
 
-apiRouter.get("/v1/admin/reports", (_request: Request, response: Response) => {
-  response.json(store.listReports());
+apiRouter.get("/v1/admin/reports", async (_request: Request, response: Response) => {
+  response.json(await store.listReports());
 });
 
-apiRouter.patch("/v1/admin/reports/:reportId/resolve", (request: Request, response: Response) => {
+apiRouter.patch("/v1/admin/reports/:reportId/resolve", async (request: Request, response: Response) => {
   const reportId = one(request.params.reportId);
-  const report = reportId ? store.resolveReport(reportId) : undefined;
+  const report = reportId ? await store.resolveReport(reportId) : undefined;
   if (!report) {
     response.status(404).json({ message: "Report not found" });
     return;
@@ -130,9 +134,9 @@ apiRouter.patch("/v1/admin/reports/:reportId/resolve", (request: Request, respon
   response.json(report);
 });
 
-apiRouter.patch("/v1/admin/users/:userId/suspend", (request: Request, response: Response) => {
+apiRouter.patch("/v1/admin/users/:userId/suspend", async (request: Request, response: Response) => {
   const userId = one(request.params.userId);
-  const user = userId ? store.suspendUser(userId) : undefined;
+  const user = userId ? await store.suspendUser(userId) : undefined;
   if (!user) {
     response.status(404).json({ message: "User not found" });
     return;

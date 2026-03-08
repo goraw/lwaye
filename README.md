@@ -11,22 +11,25 @@ Lwaye is a mobile-first marketplace MVP tailored for the Ethiopian market. This 
 
 - React Native + TypeScript for mobile
 - Node.js + TypeScript backend
-- PostgreSQL-compatible domain model, currently scaffolded with in-memory repositories
+- PostgreSQL-backed API persistence
 - Lightweight React admin UI
 
 ## Database
 
-The first PostgreSQL schema is in `apps/api/db/schema.sql`, with starter seed data in `apps/api/db/seed.sql` and local Docker setup in `docker-compose.yml`.
+The PostgreSQL schema is in `apps/api/db/schema.sql`, with starter seed data in `apps/api/db/seed.sql` and local Docker setup in `docker-compose.yml`.
 
 Example setup flow:
 
-1. Start Postgres with `docker compose up -d postgres`
-2. Apply `apps/api/db/schema.sql`
-3. Apply `apps/api/db/seed.sql`
-4. Replace the in-memory API store with database-backed repositories
+1. Start Docker Desktop
+2. Run `npm run db:up` to boot Postgres
+3. Run `npm run db:init` to apply schema and seed data
+4. Run `npm run db:reset` to recreate the local database volume when you need a clean state
+5. Start the API with `DATABASE_URL=postgres://lwaye:lwaye@localhost:5432/lwaye` or rely on that same local default
+
+The bootstrap scripts run SQL through the Docker container, so local `psql` is not required.
 
 ## Next steps
 
-1. Replace in-memory repositories with PostgreSQL persistence
-2. Wire OTP, object storage, push notifications, and real auth
-3. Add CI, migrations, and end-to-end tests
+1. Wire mobile and admin clients to the live API instead of shared seed data
+2. Replace mock OTP handling with a real provider and secure code hashing
+3. Add object storage, push notifications, CI, migrations, and end-to-end tests
