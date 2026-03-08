@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: lwaye-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lwaye
+      POSTGRES_USER: lwaye
+      POSTGRES_PASSWORD: lwaye
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
