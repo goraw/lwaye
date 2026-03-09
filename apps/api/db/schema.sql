@@ -40,6 +40,17 @@ CREATE TABLE phone_verifications (
   CONSTRAINT phone_verifications_consumed_after_create CHECK (consumed_at IS NULL OR consumed_at >= created_at)
 );
 
+CREATE TABLE sessions (
+  token TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  revoked_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT sessions_expiry_after_create CHECK (expires_at > created_at),
+  CONSTRAINT sessions_revoked_after_create CHECK (revoked_at IS NULL OR revoked_at >= created_at)
+);
+
 CREATE TABLE profiles (
   user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   bio TEXT,
@@ -161,6 +172,8 @@ CREATE TABLE moderation_actions (
 );
 
 CREATE INDEX idx_users_status ON users (status);
+CREATE INDEX idx_phone_verifications_phone_created ON phone_verifications (phone, created_at DESC);
+CREATE INDEX idx_sessions_user_active ON sessions (user_id, expires_at DESC) WHERE revoked_at IS NULL;
 CREATE INDEX idx_categories_active ON categories (is_active) WHERE is_active = TRUE;
 CREATE INDEX idx_locations_city_subcity ON locations (city, subcity);
 CREATE INDEX idx_listings_feed ON listings (status, location_id, category_id, created_at DESC);
@@ -175,8 +188,5 @@ CREATE INDEX idx_chat_threads_seller_last_message ON chat_threads (seller_id, la
 CREATE INDEX idx_messages_thread_created ON messages (thread_id, created_at ASC);
 CREATE INDEX idx_reports_status_created ON reports (status, created_at DESC);
 CREATE INDEX idx_reports_target ON reports (target_type, target_id);
-CREATE INDEX idx_phone_verifications_phone_created ON phone_verifications (phone, created_at DESC);
 
 COMMIT;
-
-

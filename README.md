@@ -24,7 +24,7 @@ Example setup flow:
 2. Run `npm run db:up` to boot Postgres
 3. Run `npm run db:init` to apply schema and seed data
 4. Run `npm run db:reset` to recreate the local database volume when you need a clean state
-5. Start the API with `DATABASE_URL=postgres://lwaye:lwaye@localhost:5432/lwaye` or rely on that same local default
+5. Start the API with `DATABASE_URL=postgres://lwaye:lwaye@127.0.0.1:5432/lwaye` or rely on that same local default
 
 The bootstrap scripts run SQL through the Docker container, so local `psql` is not required.
 
@@ -33,3 +33,4 @@ The bootstrap scripts run SQL through the Docker container, so local `psql` is n
 1. Wire mobile and admin clients to the live API instead of shared seed data
 2. Replace mock OTP handling with a real provider and secure code hashing
 3. Add object storage, push notifications, CI, migrations, and end-to-end tests
+

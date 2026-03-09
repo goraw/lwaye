@@ -106,6 +106,22 @@ type ReportRow = {
   created_at: Date | string;
 };
 
+type SessionRow = {
+  token: string;
+  user_id: string;
+  expires_at: Date | string;
+};
+
+export type AuthSession = {
+  sessionToken: string;
+  expiresAt: string;
+};
+
+export type VerifyOtpResult = {
+  user: User;
+  session: AuthSession;
+};
+
 function toIso(value: Date | string): string {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
@@ -282,7 +298,45 @@ async function queryListings(whereClause: string, values: Array<string | number>
   return result.rows.map(mapListing);
 }
 
+async function insertSession(client: { query: typeof pool.query }, userId: string): Promise<AuthSession> {
+  const token = randomUUID().replace(/-/g, "");
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  await client.query(
+    `INSERT INTO sessions (token, user_id, expires_at)
+     VALUES ($1, $2, $3::timestamptz)`,
+    [token, userId, expiresAt]
+  );
+  return {
+    sessionToken: token,
+    expiresAt
+  };
+}
+
 export class MarketplaceStore {
+  async getAdminDashboard() {
+    const [usersResult, categoriesResult, listingsResult, reportsResult] = await Promise.all([
+      pool.query<UserRow>(
+        `SELECT id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified
+         FROM users
+         ORDER BY created_at ASC`
+      ),
+      pool.query<CategoryRow>(
+        `SELECT id, slug, label_am, label_en
+         FROM categories
+         WHERE is_active = TRUE
+         ORDER BY label_en ASC`
+      ),
+      queryListings("", []),
+      this.listReports()
+    ]);
+
+    return {
+      users: usersResult.rows.map(mapUser),
+      categories: categoriesResult.rows.map(mapCategory),
+      listings: listingsResult,
+      reports: reportsResult
+    };
+  }
   async getBootstrap() {
     const [usersResult, profilesResult, categoriesResult, locationsResult] = await Promise.all([
       pool.query<UserRow>(
@@ -335,7 +389,7 @@ export class MarketplaceStore {
     };
   }
 
-  async verifyOtp(input: VerifyOtpRequest): Promise<User> {
+  async verifyOtp(input: VerifyOtpRequest): Promise<VerifyOtpResult> {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -403,14 +457,52 @@ export class MarketplaceStore {
         user = mapUser(createdResult.rows[0]);
       }
 
+      const session = await insertSession(client, user.id);
+
       await client.query("COMMIT");
-      return user;
+      return { user, session };
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
     } finally {
       client.release();
     }
+  }
+
+  async getSessionUser(token: string) {
+    const result = await pool.query<UserRow>(
+      `SELECT u.id, u.phone, u.verification_status, u.display_name, u.preferred_language, u.profile_type, u.status, u.is_phone_verified
+       FROM sessions s
+       JOIN users u ON u.id = s.user_id
+       WHERE s.token = $1
+         AND s.revoked_at IS NULL
+         AND s.expires_at > NOW()
+         AND u.status = 'active'
+       LIMIT 1`,
+      [token]
+    );
+
+    if (!result.rows[0]) {
+      return undefined;
+    }
+
+    await pool.query(
+      `UPDATE sessions
+       SET last_used_at = NOW()
+       WHERE token = $1`,
+      [token]
+    );
+
+    return mapUser(result.rows[0]);
+  }
+
+  async revokeSession(token: string) {
+    await pool.query(
+      `UPDATE sessions
+       SET revoked_at = NOW()
+       WHERE token = $1 AND revoked_at IS NULL`,
+      [token]
+    );
   }
 
   async listFeed(query: FeedQuery) {
@@ -550,6 +642,16 @@ export class MarketplaceStore {
     return mapThread(result.rows[0]);
   }
 
+  async getThread(threadId: string) {
+    const result = await pool.query<ThreadRow>(
+      `SELECT id, listing_id, buyer_id, seller_id, status, last_message_at
+       FROM chat_threads
+       WHERE id = $1
+       LIMIT 1`,
+      [threadId]
+    );
+    return result.rows[0] ? mapThread(result.rows[0]) : undefined;
+  }
   async listThreads(userId: string) {
     const result = await pool.query<ThreadRow>(
       `SELECT id, listing_id, buyer_id, seller_id, status, last_message_at
@@ -651,3 +753,5 @@ export class MarketplaceStore {
 }
 
 export const store = new MarketplaceStore();
+
+
