@@ -18,6 +18,7 @@ import type {
   VerifyOtpRequest
 } from "@lwaye/shared";
 import { pool } from "./db";
+import { sendVerificationCode } from "./sms";
 
 type UserRow = {
   id: string;
@@ -243,10 +244,6 @@ function generateOtpCode(): string {
   return String(randomInt(0, 1_000_000)).padStart(6, "0");
 }
 
-function previewOtpCode(code: string): string {
-  return process.env.NODE_ENV === "production" ? "" : code;
-}
-
 function otpMatches(inputCode: string, storedHash: string): boolean {
   const inputHash = hashOtpCode(inputCode);
   return timingSafeEqual(Buffer.from(inputHash, "utf8"), Buffer.from(storedHash, "utf8"));
@@ -402,9 +399,11 @@ export class MarketplaceStore {
       [id, phone, hashOtpCode(code), expiresAt]
     );
 
+    const delivery = await sendVerificationCode(phone, code);
+
     return {
       phone,
-      code: previewOtpCode(code),
+      code: delivery.previewCode,
       expiresAt
     };
   }
@@ -834,6 +833,8 @@ export class MarketplaceStore {
 }
 
 export const store = new MarketplaceStore();
+
+
 
 
 

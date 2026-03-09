@@ -28,10 +28,23 @@ Example setup flow:
 
 The bootstrap scripts run SQL through the Docker container, so local `psql` is not required.
 
+## SMS OTP
+
+The API now supports provider-based OTP delivery.
+
+Local development:
+- default provider is `console`
+- OTP codes are logged by the API and still returned in the response for the current demo clients
+
+Production options:
+- set `SMS_PROVIDER=twilio`
+- configure `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `TWILIO_FROM_PHONE`
+- in production, OTP codes are no longer returned in the response preview
+
+If `NODE_ENV=production` and no SMS provider is configured, OTP start will fail instead of silently previewing codes.
+
 ## Next steps
 
-1. Wire mobile and admin clients to the live API instead of shared seed data
-2. Replace the current dev-preview OTP flow with SMS delivery in production; OTP codes are now generated dynamically and stored hashed
-3. Add object storage, push notifications, CI, migrations, and end-to-end tests
-
-
+1. Replace local image storage with object storage/CDN
+2. Add push notifications, CI, migrations, and end-to-end tests
+3. Add device-level QA for mobile buyer, seller, and admin flows
