@@ -22,6 +22,7 @@ CREATE TABLE users (
   profile_type profile_type NOT NULL DEFAULT 'consumer',
   status user_status NOT NULL DEFAULT 'active',
   is_phone_verified BOOLEAN NOT NULL DEFAULT FALSE,
+  is_admin BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT users_phone_e164_format CHECK (phone ~ '^\+[1-9][0-9]{7,14}$')
@@ -172,6 +173,7 @@ CREATE TABLE moderation_actions (
 );
 
 CREATE INDEX idx_users_status ON users (status);
+CREATE INDEX idx_users_admin_status ON users (is_admin, status) WHERE is_admin = TRUE;
 CREATE INDEX idx_phone_verifications_phone_created ON phone_verifications (phone, created_at DESC);
 CREATE INDEX idx_sessions_user_active ON sessions (user_id, expires_at DESC) WHERE revoked_at IS NULL;
 CREATE INDEX idx_categories_active ON categories (is_active) WHERE is_active = TRUE;
@@ -190,3 +192,4 @@ CREATE INDEX idx_reports_status_created ON reports (status, created_at DESC);
 CREATE INDEX idx_reports_target ON reports (target_type, target_id);
 
 COMMIT;
+

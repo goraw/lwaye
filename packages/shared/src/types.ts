@@ -24,6 +24,7 @@ export interface User {
   profileType: ProfileType;
   status: UserStatus;
   isPhoneVerified: boolean;
+  isAdmin: boolean;
 }
 
 export interface Profile {

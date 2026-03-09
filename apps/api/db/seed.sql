@@ -1,12 +1,14 @@
 BEGIN;
 
-INSERT INTO users (id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified, created_at, updated_at)
+INSERT INTO users (id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified, is_admin, created_at, updated_at)
 VALUES
-  ('usr-seller-1', '+251911000111', 'verified', 'Marta Tech', 'en', 'small_business', 'active', TRUE, '2026-03-01T09:00:00.000Z', '2026-03-01T09:00:00.000Z'),
-  ('usr-buyer-1', '+251912000222', 'verified', 'Dawit', 'am', 'consumer', 'active', TRUE, '2026-03-02T09:00:00.000Z', '2026-03-02T09:00:00.000Z');
+  ('usr-admin-1', '+251900000001', 'verified', 'Lwaye Admin', 'en', 'consumer', 'active', TRUE, TRUE, '2026-03-01T08:00:00.000Z', '2026-03-01T08:00:00.000Z'),
+  ('usr-seller-1', '+251911000111', 'verified', 'Marta Tech', 'en', 'small_business', 'active', TRUE, FALSE, '2026-03-01T09:00:00.000Z', '2026-03-01T09:00:00.000Z'),
+  ('usr-buyer-1', '+251912000222', 'verified', 'Dawit', 'am', 'consumer', 'active', TRUE, FALSE, '2026-03-02T09:00:00.000Z', '2026-03-02T09:00:00.000Z');
 
 INSERT INTO profiles (user_id, bio, business_name, avatar_url, meetup_guidance_accepted, joined_at, updated_at)
 VALUES
+  ('usr-admin-1', 'Marketplace moderation and launch operations.', NULL, NULL, TRUE, '2026-03-01T08:00:00.000Z', '2026-03-01T08:00:00.000Z'),
   ('usr-seller-1', 'Trusted phone accessories seller in Bole.', 'Marta Mobile Accessories', NULL, TRUE, '2026-03-01T09:00:00.000Z', '2026-03-01T09:00:00.000Z'),
   ('usr-buyer-1', 'Looking for reliable electronics in Addis.', NULL, NULL, TRUE, '2026-03-02T09:00:00.000Z', '2026-03-02T09:00:00.000Z');
 

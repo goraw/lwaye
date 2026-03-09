@@ -17,6 +17,17 @@ export const locations: Location[] = [
 
 export const users: User[] = [
   {
+    id: "usr-admin-1",
+    phone: "+251900000001",
+    verificationStatus: "verified",
+    displayName: "Lwaye Admin",
+    preferredLanguage: "en",
+    profileType: "consumer",
+    status: "active",
+    isPhoneVerified: true,
+    isAdmin: true
+  },
+  {
     id: "usr-seller-1",
     phone: "+251911000111",
     verificationStatus: "verified",
@@ -24,7 +35,8 @@ export const users: User[] = [
     preferredLanguage: "en",
     profileType: "small_business",
     status: "active",
-    isPhoneVerified: true
+    isPhoneVerified: true,
+    isAdmin: false
   },
   {
     id: "usr-buyer-1",
@@ -34,11 +46,18 @@ export const users: User[] = [
     preferredLanguage: "am",
     profileType: "consumer",
     status: "active",
-    isPhoneVerified: true
+    isPhoneVerified: true,
+    isAdmin: false
   }
 ];
 
 export const profiles: Profile[] = [
+  {
+    userId: "usr-admin-1",
+    bio: "Marketplace moderation and launch operations.",
+    joinedAt: "2026-03-01T08:00:00.000Z",
+    meetupGuidanceAccepted: true
+  },
   {
     userId: "usr-seller-1",
     businessName: "Marta Mobile Accessories",

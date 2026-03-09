@@ -28,6 +28,7 @@ type UserRow = {
   profile_type: User["profileType"];
   status: User["status"];
   is_phone_verified: boolean;
+  is_admin: boolean;
 };
 
 type ProfileRow = {
@@ -129,7 +130,8 @@ function mapUser(row: UserRow): User {
     preferredLanguage: row.preferred_language,
     profileType: row.profile_type,
     status: row.status,
-    isPhoneVerified: row.is_phone_verified
+    isPhoneVerified: row.is_phone_verified,
+    isAdmin: row.is_admin
   };
 }
 
@@ -323,11 +325,18 @@ async function insertSession(client: { query: typeof pool.query }, userId: strin
   };
 }
 
+async function insertModerationAction(client: { query: typeof pool.query }, adminId: string, actionType: "approve_listing" | "hide_listing" | "suspend_user" | "resolve_report", targetId: string) {
+  await client.query(
+    `INSERT INTO moderation_actions (id, admin_id, action_type, target_id)
+     VALUES ($1, $2, $3, $4)`,
+    [createId("mod"), adminId, actionType, targetId]
+  );
+}
 export class MarketplaceStore {
   async getAdminDashboard() {
     const [usersResult, categoriesResult, listingsResult, reportsResult] = await Promise.all([
       pool.query<UserRow>(
-        `SELECT id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified
+        `SELECT id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified, is_admin
          FROM users
          ORDER BY created_at ASC`
       ),
@@ -351,7 +360,7 @@ export class MarketplaceStore {
   async getBootstrap() {
     const [usersResult, profilesResult, categoriesResult, locationsResult] = await Promise.all([
       pool.query<UserRow>(
-        `SELECT id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified
+        `SELECT id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified, is_admin
          FROM users
          ORDER BY created_at ASC`
       ),
@@ -439,7 +448,7 @@ export class MarketplaceStore {
       );
 
       const existingResult = await client.query<UserRow>(
-        `SELECT id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified
+        `SELECT id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified, is_admin
          FROM users
          WHERE phone = $1
          LIMIT 1`,
@@ -456,16 +465,16 @@ export class MarketplaceStore {
                preferred_language = $3,
                updated_at = NOW()
            WHERE phone = $1
-           RETURNING id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified`,
+           RETURNING id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified, is_admin`,
           [input.phone, input.displayName, input.preferredLanguage]
         );
         user = mapUser(updatedResult.rows[0]);
       } else {
         const userId = createId("usr");
         const createdResult = await client.query<UserRow>(
-          `INSERT INTO users (id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified)
+          `INSERT INTO users (id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified, is_admin)
            VALUES ($1, $2, 'verified', $3, $4, 'consumer', 'active', TRUE)
-           RETURNING id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified`,
+           RETURNING id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified, is_admin`,
           [userId, input.phone, input.displayName, input.preferredLanguage]
         );
 
@@ -588,18 +597,33 @@ export class MarketplaceStore {
     }
   }
 
-  async updateListingStatus(listingId: string, status: ListingStatus) {
-    const result = await pool.query<ListingRow>(
-      `UPDATE listings
-       SET status = $2,
-           published_at = CASE WHEN $2 = 'active' THEN COALESCE(published_at, NOW()) ELSE published_at END,
-           updated_at = NOW()
-       WHERE id = $1
-       RETURNING id, seller_id, title, description, price_etb, negotiable, category_id, condition, location_id, status, created_at, updated_at,
-         COALESCE((SELECT array_agg(image_url ORDER BY sort_order) FROM listing_images WHERE listing_id = listings.id), '{}') AS photo_urls`,
-      [listingId, status]
-    );
-    return result.rows[0] ? mapListing(result.rows[0]) : undefined;
+  async updateListingStatus(listingId: string, status: ListingStatus, adminId: string) {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const result = await client.query<ListingRow>(
+        `UPDATE listings
+         SET status = $2,
+             published_at = CASE WHEN $2 = 'active' THEN COALESCE(published_at, NOW()) ELSE published_at END,
+             updated_at = NOW()
+         WHERE id = $1
+         RETURNING id, seller_id, title, description, price_etb, negotiable, category_id, condition, location_id, status, created_at, updated_at,
+           COALESCE((SELECT array_agg(image_url ORDER BY sort_order) FROM listing_images WHERE listing_id = listings.id), '{}') AS photo_urls`,
+        [listingId, status]
+      );
+      if (!result.rows[0]) {
+        await client.query("ROLLBACK");
+        return undefined;
+      }
+      await insertModerationAction(client, adminId, status === "hidden" ? "hide_listing" : "approve_listing", listingId);
+      await client.query("COMMIT");
+      return mapListing(result.rows[0]);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async listFavorites(userId: string) {
@@ -750,29 +774,72 @@ export class MarketplaceStore {
     return result.rows.map(mapReport);
   }
 
-  async resolveReport(reportId: string) {
-    const result = await pool.query<ReportRow>(
-      `UPDATE reports
-       SET status = 'resolved', updated_at = NOW()
-       WHERE id = $1
-       RETURNING id, target_type, target_id, reporter_id, reason_code, notes, status, created_at`,
-      [reportId]
-    );
-    return result.rows[0] ? mapReport(result.rows[0]) : undefined;
+  async resolveReport(reportId: string, adminId: string) {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const result = await client.query<ReportRow>(
+        `UPDATE reports
+         SET status = 'resolved', updated_at = NOW()
+         WHERE id = $1
+         RETURNING id, target_type, target_id, reporter_id, reason_code, notes, status, created_at`,
+        [reportId]
+      );
+      if (!result.rows[0]) {
+        await client.query("ROLLBACK");
+        return undefined;
+      }
+      await insertModerationAction(client, adminId, "resolve_report", reportId);
+      await client.query("COMMIT");
+      return mapReport(result.rows[0]);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
-  async suspendUser(userId: string) {
-    const result = await pool.query<UserRow>(
-      `UPDATE users
-       SET status = 'suspended', updated_at = NOW()
-       WHERE id = $1
-       RETURNING id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified`,
-      [userId]
-    );
-    return result.rows[0] ? mapUser(result.rows[0]) : undefined;
+  async suspendUser(userId: string, adminId: string) {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const result = await client.query<UserRow>(
+        `UPDATE users
+         SET status = 'suspended', updated_at = NOW()
+         WHERE id = $1
+         RETURNING id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified, is_admin`,
+        [userId]
+      );
+      if (!result.rows[0]) {
+        await client.query("ROLLBACK");
+        return undefined;
+      }
+      await client.query(
+        `UPDATE sessions
+         SET revoked_at = NOW()
+         WHERE user_id = $1 AND revoked_at IS NULL`,
+        [userId]
+      );
+      await insertModerationAction(client, adminId, "suspend_user", userId);
+      await client.query("COMMIT");
+      return mapUser(result.rows[0]);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 }
 
 export const store = new MarketplaceStore();
+
+
+
+
+
+
+
 
 
