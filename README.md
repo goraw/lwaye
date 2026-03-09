@@ -91,8 +91,20 @@ Production option:
 - set `PUSH_PROVIDER=expo`
 - set `EXPO_PUBLIC_EAS_PROJECT_ID` in `apps/mobile/.env`
 
+## Deployment
+
+Deployment artifacts are now included for the backend and admin apps:
+
+- `apps/api/Dockerfile`
+- `apps/admin/Dockerfile`
+- `docker-compose.production.yml`
+- `docs/deployment.md`
+
+The production compose example includes Postgres, a portable migration job, the API service, and the admin service. It uses `apps/api/.env.example` as a checked-in baseline; replace those defaults with secure deployment env values before real rollout. Use `docker compose -f docker-compose.production.yml run --rm migrate` before starting `api` and `admin`.
+
 ## Next steps
 
-1. Add deployment automation and hosting docs
+1. Add cloud-specific deploy workflows for the chosen hosting target
 2. Add device-level QA for mobile buyer, seller, and admin flows
 3. Expand server-side blocking and moderation tooling
+

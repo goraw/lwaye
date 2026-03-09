@@ -15,6 +15,9 @@ export function createApp(router: Router = apiRouter) {
   if (shouldServeLocalUploads()) {
     app.use("/uploads", express.static(uploadsDirectory));
   }
+  app.get("/health", (_request, response) => {
+    response.json({ status: "ok" });
+  });
   app.use(express.json());
   app.use(router);
   return app;

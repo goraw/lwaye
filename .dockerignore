@@ -1,0 +1,12 @@
+node_modules
+dist
+build
+.expo
+.turbo
+coverage
+.git
+.github
+Dockerfile
+*.log
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
