@@ -1,33 +1,31 @@
 # Database Schema
 
-`apps/api/db/schema.sql` defines the PostgreSQL schema for the current Lwaye MVP scaffold.
+The current PostgreSQL database definition lives in two forms:
+
+- `apps/api/db/migrations/`: source of truth for incremental schema changes
+- `apps/api/db/schema.sql`: snapshot of the latest full schema
 
 ## Coverage
 
-The schema maps directly to the in-memory API store and shared types:
+The schema maps directly to the marketplace API and shared types:
 
-- `users`, `phone_verifications`, `profiles`
+- `users`, `phone_verifications`, `sessions`, `profiles`
 - `categories`, `locations`
 - `listings`, `listing_images`, `favorites`
 - `chat_threads`, `messages`
 - `reports`, `moderation_actions`
 
-## Design decisions
+## Why migrations exist
 
-- Primary keys are `TEXT` so the database accepts the current prefixed IDs used by the scaffold (`usr-*`, `lst-*`, `thr-*`).
-- Enumerated types mirror the TypeScript unions in `packages/shared/src/types.ts`.
-- Listing search uses a generated `tsvector` column plus a trigram index on `title` to support MVP keyword search with PostgreSQL only.
-- `chat_threads` enforces one buyer thread per listing with `UNIQUE (listing_id, buyer_id)`.
-- `favorites` enforces one saved listing per user with `UNIQUE (listing_id, user_id)`.
-- `reports` keep a polymorphic `target_type` + `target_id` pair rather than foreign keys because a report can target a listing, user, or message.
+Migrations let existing environments move forward safely without dropping data. New schema changes should be added as a new numbered SQL file in `apps/api/db/migrations/` instead of editing production databases manually.
 
-## Applying locally
+## Local workflow
 
-Example with `psql`:
+- `npm run db:up`: start Postgres in Docker
+- `npm run db:migrate`: apply unapplied migrations only
+- `npm run db:init`: rebuild `public`, apply all migrations, then apply seed data
+- `npm run db:reset`: recreate the Docker volume and rerun `db:init`
 
-```powershell
-psql $env:DATABASE_URL -f apps/api/db/schema.sql
-psql $env:DATABASE_URL -f apps/api/db/seed.sql
-```
+## Applying manually
 
-If you run PostgreSQL via Docker, point `DATABASE_URL` at that container before applying the files.
+If you need to inspect or apply SQL by hand, point `DATABASE_URL` at the Docker Postgres instance and use `psql` against the migration files in order.

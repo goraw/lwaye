@@ -16,15 +16,16 @@ Lwaye is a mobile-first marketplace MVP tailored for the Ethiopian market. This 
 
 ## Database
 
-The PostgreSQL schema is in `apps/api/db/schema.sql`, with starter seed data in `apps/api/db/seed.sql` and local Docker setup in `docker-compose.yml`.
+The PostgreSQL migration source of truth is in `apps/api/db/migrations`, with a current schema snapshot in `apps/api/db/schema.sql`, seed data in `apps/api/db/seed.sql`, and local Docker setup in `docker-compose.yml`.
 
 Example setup flow:
 
 1. Start Docker Desktop
 2. Run `npm run db:up` to boot Postgres
-3. Run `npm run db:init` to apply schema and seed data
-4. Run `npm run db:reset` to recreate the local database volume when you need a clean state
-5. Start the API with `DATABASE_URL=postgres://lwaye:lwaye@127.0.0.1:5432/lwaye` or rely on that same local default
+3. Run `npm run db:migrate` to apply unapplied schema changes
+4. Run `npm run db:init` to rebuild the local schema from migrations and apply seed data
+5. Run `npm run db:reset` to recreate the local database volume when you need a clean state
+6. Start the API with `DATABASE_URL=postgres://lwaye:lwaye@127.0.0.1:5432/lwaye` or rely on that same local default
 
 The bootstrap scripts run SQL through the Docker container, so local `psql` is not required.
 
@@ -59,6 +60,6 @@ Production object storage:
 
 ## Next steps
 
-1. Add push notifications, CI, migrations, and end-to-end tests
+1. Add push notifications, CI, and deployment automation
 2. Add device-level QA for mobile buyer, seller, and admin flows
-3. Expand mobile listing detail, seller profile, and reporting/blocking UX
+3. Expand server-side blocking and moderation tooling

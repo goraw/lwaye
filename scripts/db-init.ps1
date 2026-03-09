@@ -30,11 +30,10 @@ function Invoke-DockerPsqlCommand {
 
 & "$PSScriptRoot/db-up.ps1" -ContainerName $ContainerName
 
-docker cp "apps/api/db/schema.sql" "${ContainerName}:/tmp/lwaye-schema.sql" | Out-Null
-docker cp "apps/api/db/seed.sql" "${ContainerName}:/tmp/lwaye-seed.sql" | Out-Null
-
 Invoke-DockerPsqlCommand "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
-Invoke-DockerPsqlFile "/tmp/lwaye-schema.sql"
+& "$PSScriptRoot/db-migrate.ps1" -ContainerName $ContainerName -Database $Database -User $User
+
+docker cp "apps/api/db/seed.sql" "${ContainerName}:/tmp/lwaye-seed.sql" | Out-Null
 Invoke-DockerPsqlFile "/tmp/lwaye-seed.sql"
 
-Write-Output "Database schema and seed applied."
+Write-Output "Database migrations and seed applied."
