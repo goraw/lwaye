@@ -1,0 +1,116 @@
+name: Deploy AWS
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      run_migrations:
+        description: Run database migrations before deploying services
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-aws-${{ github.event.inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to AWS
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.1
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Compute image tags
+        id: image-meta
+        shell: bash
+        run: |
+          echo "api_image=${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_API_REPOSITORY }}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "admin_image=${{ steps.login-ecr.outputs.registry }}/${{ vars.AWS_ECR_ADMIN_REPOSITORY }}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push API image
+        run: |
+          docker build -f apps/api/Dockerfile -t "${{ steps.image-meta.outputs.api_image }}" .
+          docker push "${{ steps.image-meta.outputs.api_image }}"
+
+      - name: Build and push admin image
+        run: |
+          docker build -f apps/admin/Dockerfile --build-arg VITE_API_URL="${{ vars.AWS_PUBLIC_API_URL }}" -t "${{ steps.image-meta.outputs.admin_image }}" .
+          docker push "${{ steps.image-meta.outputs.admin_image }}"
+
+      - name: Render migration task definition
+        id: render-migrate-task
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/aws/ecs/migrate-task-definition.json
+          container-name: migrate
+          image: ${{ steps.image-meta.outputs.api_image }}
+
+      - name: Run migrations
+        if: ${{ github.event.inputs.run_migrations == 'true' }}
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-migrate-task.outputs.task-definition }}
+          cluster: ${{ vars.AWS_ECS_CLUSTER }}
+          run-task: true
+          wait-for-task-stopped: true
+          run-task-launch-type: FARGATE
+          run-task-subnets: ${{ vars.AWS_ECS_SUBNETS }}
+          run-task-security-groups: ${{ vars.AWS_ECS_SECURITY_GROUPS }}
+          run-task-assign-public-IP: ${{ vars.AWS_ECS_ASSIGN_PUBLIC_IP }}
+
+      - name: Render API task definition
+        id: render-api-task
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/aws/ecs/api-task-definition.json
+          container-name: api
+          image: ${{ steps.image-meta.outputs.api_image }}
+
+      - name: Deploy API service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-api-task.outputs.task-definition }}
+          service: ${{ vars.AWS_ECS_API_SERVICE }}
+          cluster: ${{ vars.AWS_ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Render admin task definition
+        id: render-admin-task
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/aws/ecs/admin-task-definition.json
+          container-name: admin
+          image: ${{ steps.image-meta.outputs.admin_image }}
+
+      - name: Deploy admin service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-admin-task.outputs.task-definition }}
+          service: ${{ vars.AWS_ECS_ADMIN_SERVICE }}
+          cluster: ${{ vars.AWS_ECS_CLUSTER }}
+          wait-for-service-stability: true

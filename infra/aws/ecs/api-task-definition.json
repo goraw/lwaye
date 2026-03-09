@@ -1,0 +1,49 @@
+{
+  "family": "lwaye-api",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::123456789012:role/lwaye-ecs-execution-role",
+  "taskRoleArn": "arn:aws:iam::123456789012:role/lwaye-api-task-role",
+  "containerDefinitions": [
+    {
+      "name": "api",
+      "image": "REPLACE_ME",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 4000,
+          "hostPort": 4000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "PORT", "value": "4000" },
+        { "name": "SMS_PROVIDER", "value": "twilio" },
+        { "name": "STORAGE_PROVIDER", "value": "s3" },
+        { "name": "PUSH_PROVIDER", "value": "expo" }
+      ],
+      "secrets": [
+        { "name": "DATABASE_URL", "valueFrom": "arn:aws:ssm:us-east-1:123456789012:parameter/lwaye/api/database-url" },
+        { "name": "TWILIO_ACCOUNT_SID", "valueFrom": "arn:aws:ssm:us-east-1:123456789012:parameter/lwaye/api/twilio-account-sid" },
+        { "name": "TWILIO_AUTH_TOKEN", "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:lwaye/api/twilio-auth-token" },
+        { "name": "TWILIO_FROM_PHONE", "valueFrom": "arn:aws:ssm:us-east-1:123456789012:parameter/lwaye/api/twilio-from-phone" },
+        { "name": "S3_BUCKET", "valueFrom": "arn:aws:ssm:us-east-1:123456789012:parameter/lwaye/api/s3-bucket" },
+        { "name": "S3_REGION", "valueFrom": "arn:aws:ssm:us-east-1:123456789012:parameter/lwaye/api/s3-region" },
+        { "name": "S3_ACCESS_KEY_ID", "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:lwaye/api/s3-access-key-id" },
+        { "name": "S3_SECRET_ACCESS_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:lwaye/api/s3-secret-access-key" },
+        { "name": "S3_PUBLIC_BASE_URL", "valueFrom": "arn:aws:ssm:us-east-1:123456789012:parameter/lwaye/api/s3-public-base-url" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/lwaye-api",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}
