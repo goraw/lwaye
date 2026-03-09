@@ -52,6 +52,16 @@ CREATE TABLE sessions (
   CONSTRAINT sessions_revoked_after_create CHECK (revoked_at IS NULL OR revoked_at >= created_at)
 );
 
+
+CREATE TABLE device_push_tokens (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token TEXT NOT NULL UNIQUE,
+  platform TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 CREATE TABLE profiles (
   user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   bio TEXT,
@@ -176,6 +186,7 @@ CREATE INDEX idx_users_status ON users (status);
 CREATE INDEX idx_users_admin_status ON users (is_admin, status) WHERE is_admin = TRUE;
 CREATE INDEX idx_phone_verifications_phone_created ON phone_verifications (phone, created_at DESC);
 CREATE INDEX idx_sessions_user_active ON sessions (user_id, expires_at DESC) WHERE revoked_at IS NULL;
+CREATE INDEX idx_device_push_tokens_user ON device_push_tokens (user_id, updated_at DESC);
 CREATE INDEX idx_categories_active ON categories (is_active) WHERE is_active = TRUE;
 CREATE INDEX idx_locations_city_subcity ON locations (city, subcity);
 CREATE INDEX idx_listings_feed ON listings (status, location_id, category_id, created_at DESC);
@@ -192,4 +203,5 @@ CREATE INDEX idx_reports_status_created ON reports (status, created_at DESC);
 CREATE INDEX idx_reports_target ON reports (target_type, target_id);
 
 COMMIT;
+
 

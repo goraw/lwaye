@@ -11,6 +11,8 @@ export interface ApiStore {
   verifyOtp(input: VerifyOtpRequest): Promise<unknown>;
   getSessionUser(token: string): Promise<User | undefined>;
   revokeSession(token: string): Promise<void>;
+  registerPushToken(userId: string, token: string, platform: string): Promise<void>;
+  removePushToken(userId: string, token: string): Promise<void>;
   listFeed(query: FeedQuery): Promise<{ items: Listing[]; nextCursor?: string }>;
   getListing(listingId: string): Promise<Listing | undefined>;
   createListing(input: CreateListingRequest): Promise<Listing>;
@@ -129,6 +131,27 @@ export function createApiRouter(store: ApiStore) {
     response.status(204).end();
   });
 
+  router.post("/v1/push-tokens", async (request: Request, response: Response) => {
+    const user = await requireSessionUser(request, response);
+    if (!user) return;
+    if (!isNonEmptyString(request.body?.token) || !isNonEmptyString(request.body?.platform)) {
+      response.status(400).json({ message: "Push token and platform are required" });
+      return;
+    }
+    await store.registerPushToken(user.id, request.body.token.trim(), request.body.platform.trim());
+    response.status(204).end();
+  });
+
+  router.post("/v1/push-tokens/remove", async (request: Request, response: Response) => {
+    const user = await requireSessionUser(request, response);
+    if (!user) return;
+    if (!isNonEmptyString(request.body?.token)) {
+      response.status(400).json({ message: "Push token is required" });
+      return;
+    }
+    await store.removePushToken(user.id, request.body.token.trim());
+    response.status(204).end();
+  });
   router.post("/v1/uploads/image", async (request: Request, response: Response) => {
     const user = await requireSessionUser(request, response);
     if (!user) return;
@@ -378,6 +401,8 @@ export function createApiRouter(store: ApiStore) {
 }
 
 export const apiRouter = createApiRouter(defaultStore);
+
+
 
 
 

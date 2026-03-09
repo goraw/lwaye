@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+import * as Notifications from "expo-notifications";
 import {
   ActivityIndicator,
   Alert,
@@ -100,6 +101,7 @@ export default function App() {
   const [otpCode, setOtpCode] = useState("");
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [demoCodeHint, setDemoCodeHint] = useState<string | null>(null);
+  const [pushToken, setPushToken] = useState<string | null>(null);
   const [bootstrap, setBootstrap] = useState<BootstrapPayload | null>(null);
   const [viewer, setViewer] = useState<User | null>(null);
   const [feed, setFeed] = useState<Listing[]>([]);
@@ -137,6 +139,7 @@ export default function App() {
   const selectedSellerProfile = useMemo(() => profileForUser(selectedSeller, bootstrap?.profiles), [bootstrap, selectedSeller]);
 
   useEffect(() => { if (sessionToken) void hydrate(sessionToken); }, [sessionToken]);
+  useEffect(() => { if (sessionToken && viewer) void registerPushToken(sessionToken); }, [sessionToken, viewer?.id]);
   useEffect(() => { if (!viewer) { setThreads([]); setFavorites([]); setMessages([]); return; } void loadUserData(viewer.id); }, [viewer?.id]);
   useEffect(() => { if (!selectedThread) { setMessages([]); return; } void loadMessages(selectedThread.id); }, [selectedThread?.id]);
   useEffect(() => {
@@ -182,6 +185,27 @@ export default function App() {
     try { setMessages(await apiGet<Message[]>(`/v1/messages/${threadId}`, sessionToken ?? undefined)); } catch (error) { setErrorMessage((error as Error).message); }
   }
 
+  async function registerPushToken(activeSessionToken: string) {
+    try {
+      const permissions = await Notifications.getPermissionsAsync();
+      let status = permissions.status;
+      if (status !== "granted") {
+        const requested = await Notifications.requestPermissionsAsync();
+        status = requested.status;
+      }
+      if (status !== "granted") {
+        return;
+      }
+      const response = await Notifications.getExpoPushTokenAsync({ projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID });
+      if (!response.data || response.data === pushToken) {
+        return;
+      }
+      setPushToken(response.data);
+      await apiPost<void>("/v1/push-tokens", { token: response.data, platform: "expo" }, activeSessionToken);
+    } catch {
+      // keep push registration non-blocking in local/dev environments
+    }
+  }
   async function handleStartOtp() {
     setIsAuthSubmitting(true);
     try {
@@ -199,8 +223,11 @@ export default function App() {
   }
 
   async function handleLogout() {
-    try { if (sessionToken) await apiPost<void>("/v1/auth/logout", undefined, sessionToken); } catch {}
-    setSessionToken(null); setViewer(null); setBootstrap(null); setFeed([]); setThreads([]); setMessages([]); setFavorites([]); setSelectedThreadId(null); setSelectedListingId(null); setBlockedSellerIds([]); setDemoCodeHint(null); setSearch(""); setOtpCode(""); setListingPhotoUrl("");
+    try {
+      if (sessionToken && pushToken) await apiPost<void>("/v1/push-tokens/remove", { token: pushToken }, sessionToken);
+      if (sessionToken) await apiPost<void>("/v1/auth/logout", undefined, sessionToken);
+    } catch {}
+    setSessionToken(null); setViewer(null); setBootstrap(null); setFeed([]); setThreads([]); setMessages([]); setFavorites([]); setSelectedThreadId(null); setSelectedListingId(null); setBlockedSellerIds([]); setDemoCodeHint(null); setPushToken(null); setSearch(""); setOtpCode(""); setListingPhotoUrl("");
   }
 
   async function handleFavoriteToggle(listingId: string) {
@@ -279,3 +306,4 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({ safeArea: { flex: 1, backgroundColor: "#f6f0e8" }, authWrapper: { flex: 1, justifyContent: "center", padding: 20 }, authCard: { backgroundColor: "#fff7eb", borderRadius: 24, padding: 24, gap: 14, borderWidth: 1, borderColor: "#e4d3bc" }, demoHint: { color: "#345548", fontWeight: "700" }, centered: { justifyContent: "center", alignItems: "center", gap: 12 }, loadingText: { color: "#345548", fontWeight: "600" }, header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12, backgroundColor: "#1f4d3b", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }, brand: { color: "#fff7eb", fontSize: 28, fontWeight: "800" }, tagline: { color: "#dce9de", fontSize: 13, marginTop: 4 }, apiHint: { color: "#c4d3c7", fontSize: 11, marginTop: 6 }, languageToggle: { backgroundColor: "#e6b54a", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }, languageToggleText: { color: "#24352c", fontWeight: "700" }, tabRow: { flexDirection: "row", padding: 12, gap: 8, backgroundColor: "#fff7eb" }, tabButton: { flex: 1, paddingVertical: 10, borderRadius: 14, backgroundColor: "#ede1cf" }, tabButtonActive: { backgroundColor: "#1f4d3b" }, tabLabel: { textAlign: "center", color: "#5a4d42", fontWeight: "600", textTransform: "capitalize" }, tabLabelActive: { color: "#fff7eb" }, content: { padding: 16, gap: 16 }, errorBanner: { backgroundColor: "#fff1f2", borderRadius: 16, padding: 16, borderWidth: 1, borderColor: "#f4b8c0", gap: 12 }, errorText: { color: "#8a2432", lineHeight: 20 }, retryButton: { alignSelf: "flex-start", backgroundColor: "#8a2432", borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10 }, retryButtonText: { color: "#fff7eb", fontWeight: "700" }, searchInput: { backgroundColor: "#ffffff", borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: "#dfd1bc" }, multilineInput: { minHeight: 100, textAlignVertical: "top" }, messageComposer: { marginTop: 8 }, inlineActions: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 10 }, inlineButton: { backgroundColor: "#1f4d3b", borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10 }, inlineButtonText: { color: "#fff7eb", fontWeight: "700" }, inlineButtonSecondary: { backgroundColor: "#ede1cf", borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10 }, inlineButtonSecondaryText: { color: "#5c4a38", fontWeight: "700" }, inlineButtonActive: { backgroundColor: "#1f4d3b" }, inlineButtonActiveText: { color: "#fff7eb" }, categoryRow: { marginTop: 12, marginBottom: 8 }, sectionLabel: { color: "#345548", fontWeight: "700", marginTop: 8 }, pill: { backgroundColor: "#fff7eb", borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10, marginRight: 8, borderWidth: 1, borderColor: "#d6c4a8" }, pillActive: { backgroundColor: "#1f4d3b", borderColor: "#1f4d3b" }, pillText: { color: "#5f4934", fontWeight: "600" }, pillTextActive: { color: "#fff7eb" }, panel: { backgroundColor: "#fff7eb", borderRadius: 20, padding: 20, gap: 12, borderWidth: 1, borderColor: "#e4d3bc" }, panelTitle: { fontSize: 22, fontWeight: "800", color: "#21372d" }, panelBody: { color: "#4d4137", lineHeight: 22 }, detailCard: { backgroundColor: "#fffdf8", borderRadius: 22, padding: 18, borderWidth: 1, borderColor: "#dcc8ad", gap: 10 }, heroImage: { width: "100%", height: 220, borderRadius: 18, backgroundColor: "#ede1cf" }, card: { backgroundColor: "#ffffff", borderRadius: 20, padding: 16, borderWidth: 1, borderColor: "#eadfcf", gap: 8 }, cardSelected: { borderColor: "#1f4d3b", borderWidth: 2 }, cardImage: { width: "100%", height: 180, borderRadius: 16, backgroundColor: "#ede1cf" }, previewImage: { width: "100%", height: 220, borderRadius: 16, backgroundColor: "#ede1cf" }, imagePreviewCard: { gap: 10 }, cardTitle: { fontSize: 18, fontWeight: "800", color: "#1d2e27" }, cardMeta: { color: "#345548", fontWeight: "700" }, cardDescription: { color: "#52463d", lineHeight: 20 }, negotiable: { color: "#a15d00", fontWeight: "700" }, actionRow: { flexDirection: "row", gap: 10, marginTop: 8 }, primaryButton: { flex: 1, backgroundColor: "#1f4d3b", borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14 }, primaryButtonText: { textAlign: "center", color: "#fff7eb", fontWeight: "700" }, secondaryButton: { flex: 1, backgroundColor: "#ede1cf", borderRadius: 12, paddingVertical: 12 }, secondaryButtonText: { textAlign: "center", color: "#5c4a38", fontWeight: "700" }, outlineBox: { borderWidth: 1, borderColor: "#d3c0a5", borderRadius: 16, padding: 14, gap: 8 }, outlineText: { color: "#4f4338" }, threadContext: { color: "#345548", fontWeight: "700", marginBottom: 6 }, chatBubbleMine: { alignSelf: "flex-end", backgroundColor: "#1f4d3b", padding: 12, borderRadius: 14, maxWidth: "85%" }, chatBubbleTheirs: { alignSelf: "flex-start", backgroundColor: "#ede1cf", padding: 12, borderRadius: 14, maxWidth: "85%" }, chatText: { color: "#4d4137" }, chatTextMine: { color: "#fff7eb" }, safetyText: { color: "#915300", lineHeight: 22, fontWeight: "600" } });
+

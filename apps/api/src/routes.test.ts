@@ -56,6 +56,7 @@ const resolvedReport: Report = {
 
 function createStore(): ApiStore {
   const sessions = new Map<string, User>([["buyer-token", buyerUser], ["admin-token", adminUser]]);
+  const pushTokens: Array<{ userId: string; token: string; platform: string }> = [];
 
   return {
     async getBootstrap() {
@@ -73,6 +74,14 @@ function createStore(): ApiStore {
     },
     async revokeSession(token: string) {
       sessions.delete(token);
+    },
+    async registerPushToken(userId: string, token: string, platform: string) {
+      pushTokens.push({ userId, token, platform });
+    },
+    async removePushToken(userId: string, token: string) {
+      const next = pushTokens.filter((entry) => !(entry.userId === userId && entry.token === token));
+      pushTokens.length = 0;
+      pushTokens.push(...next);
     },
     async listFeed() {
       return { items: [listing] };
@@ -202,3 +211,15 @@ test("admin can resolve reports", async () => {
   assert.equal(payload.id, resolvedReport.id);
   assert.equal(payload.status, "resolved");
 });
+
+test("push token registration requires a session", async () => {
+  const client = await createTestClient();
+  const response = await client.request("/v1/push-tokens", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: "ExponentPushToken[test]", platform: "expo" })
+  });
+
+  assert.equal(response.status, 401);
+});
+

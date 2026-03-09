@@ -19,6 +19,7 @@ import type {
 } from "@lwaye/shared";
 import { pool } from "./db";
 import { sendVerificationCode } from "./sms";
+import { sendPushNotification } from "./notifications";
 
 type UserRow = {
   id: string;
@@ -97,6 +98,9 @@ type MessageRow = {
   read_at: Date | string | null;
 };
 
+type DevicePushTokenRow = {
+  token: string;
+};
 type ReportRow = {
   id: string;
   target_type: Report["targetType"];
@@ -329,6 +333,20 @@ async function insertModerationAction(client: { query: typeof pool.query }, admi
     [createId("mod"), adminId, actionType, targetId]
   );
 }
+
+async function listDevicePushTokens(userId: string) {
+  const result = await pool.query<DevicePushTokenRow>(
+    `SELECT token FROM device_push_tokens WHERE user_id = $1 ORDER BY updated_at DESC`,
+    [userId]
+  );
+  return result.rows.map((row) => row.token);
+}
+
+async function notifyUser(userId: string, title: string, body: string, data?: Record<string, string>) {
+  const tokens = await listDevicePushTokens(userId);
+  await sendPushNotification(tokens.map((token) => ({ token, title, body, data })));
+}
+
 export class MarketplaceStore {
   async getAdminDashboard() {
     const [usersResult, categoriesResult, listingsResult, reportsResult] = await Promise.all([
@@ -472,7 +490,7 @@ export class MarketplaceStore {
         const userId = createId("usr");
         const createdResult = await client.query<UserRow>(
           `INSERT INTO users (id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified, is_admin)
-           VALUES ($1, $2, 'verified', $3, $4, 'consumer', 'active', TRUE)
+           VALUES ($1, $2, 'verified', $3, $4, 'consumer', 'active', TRUE, FALSE)
            RETURNING id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified, is_admin`,
           [userId, input.phone, input.displayName, input.preferredLanguage]
         );
@@ -500,7 +518,7 @@ export class MarketplaceStore {
 
   async getSessionUser(token: string) {
     const result = await pool.query<UserRow>(
-      `SELECT u.id, u.phone, u.verification_status, u.display_name, u.preferred_language, u.profile_type, u.status, u.is_phone_verified
+      `SELECT u.id, u.phone, u.verification_status, u.display_name, u.preferred_language, u.profile_type, u.status, u.is_phone_verified, u.is_admin
        FROM sessions s
        JOIN users u ON u.id = s.user_id
        WHERE s.token = $1
@@ -525,6 +543,23 @@ export class MarketplaceStore {
     return mapUser(result.rows[0]);
   }
 
+  async registerPushToken(userId: string, token: string, platform: string) {
+    await pool.query(
+      `INSERT INTO device_push_tokens (id, user_id, token, platform)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (token)
+       DO UPDATE SET user_id = EXCLUDED.user_id, platform = EXCLUDED.platform, updated_at = NOW(), last_seen_at = NOW()`,
+      [createId("dpt"), userId, token, platform]
+    );
+  }
+
+  async removePushToken(userId: string, token: string) {
+    await pool.query(
+      `DELETE FROM device_push_tokens
+       WHERE user_id = $1 AND token = $2`,
+      [userId, token]
+    );
+  }
   async revokeSession(token: string) {
     await pool.query(
       `UPDATE sessions
@@ -616,6 +651,7 @@ export class MarketplaceStore {
       }
       await insertModerationAction(client, adminId, status === "hidden" ? "hide_listing" : "approve_listing", listingId);
       await client.query("COMMIT");
+      await notifyUser(result.rows[0].seller_id, "Listing update", status === "hidden" ? "One of your listings was hidden by moderation." : "One of your listings is now active.", { listingId });
       return mapListing(result.rows[0]);
     } catch (error) {
       await client.query("ROLLBACK");
@@ -722,10 +758,7 @@ export class MarketplaceStore {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      const threadResult = await client.query<{ id: string }>(
-        `SELECT id FROM chat_threads WHERE id = $1 LIMIT 1`,
-        [input.threadId]
-      );
+      const threadResult = await client.query<{ id: string; buyer_id: string; seller_id: string }>(`SELECT id, buyer_id, seller_id FROM chat_threads WHERE id = $1 LIMIT 1`, [input.threadId]);
       if (!threadResult.rowCount) {
         throw new Error("Thread not found");
       }
@@ -745,6 +778,8 @@ export class MarketplaceStore {
       );
 
       await client.query("COMMIT");
+      const recipientId = threadResult.rows[0].buyer_id === input.senderId ? threadResult.rows[0].seller_id : threadResult.rows[0].buyer_id;
+      await notifyUser(recipientId, "New message", input.text, { threadId: input.threadId });
       return mapMessage(result.rows[0]);
     } catch (error) {
       await client.query("ROLLBACK");
@@ -790,6 +825,7 @@ export class MarketplaceStore {
       }
       await insertModerationAction(client, adminId, "resolve_report", reportId);
       await client.query("COMMIT");
+      await notifyUser(result.rows[0].reporter_id, "Report resolved", "A report you submitted was reviewed by the moderation team.", { reportId });
       return mapReport(result.rows[0]);
     } catch (error) {
       await client.query("ROLLBACK");
@@ -833,6 +869,14 @@ export class MarketplaceStore {
 }
 
 export const store = new MarketplaceStore();
+
+
+
+
+
+
+
+
 
 
 
