@@ -5,3 +5,5 @@ build
 .turbo
 coverage
 *.log
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep

@@ -1,4 +1,8 @@
+import { mkdirSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { Request, Response } from "express";
+import multer from "multer";
 import { Router } from "express";
 import type { ListingStatus, User } from "@lwaye/shared";
 import { store } from "./store";
@@ -6,6 +10,24 @@ import { store } from "./store";
 export const apiRouter = Router();
 
 const allowedListingStatuses: ListingStatus[] = ["draft", "active", "sold", "hidden", "flagged"];
+const uploadsDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "uploads");
+
+mkdirSync(uploadsDirectory, { recursive: true });
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_request, _file, callback) => {
+      callback(null, uploadsDirectory);
+    },
+    filename: (_request, file, callback) => {
+      const extension = path.extname(file.originalname || "").toLowerCase() || ".jpg";
+      callback(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${extension}`);
+    }
+  }),
+  limits: {
+    fileSize: 5 * 1024 * 1024
+  }
+});
 
 function one(value: string | string[] | undefined): string | undefined {
   if (Array.isArray(value)) {
@@ -28,6 +50,10 @@ function isNonEmptyString(value: unknown): value is string {
 
 function isPositiveNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+function publicAssetUrl(request: Request, filename: string): string {
+  return `${request.protocol}://${request.get("host")}/uploads/${filename}`;
 }
 
 async function requireSessionUser(request: Request, response: Response): Promise<User | undefined> {
@@ -92,6 +118,30 @@ apiRouter.post("/v1/auth/logout", async (request: Request, response: Response) =
 
   await store.revokeSession(token);
   response.status(204).end();
+});
+
+apiRouter.post("/v1/uploads/image", async (request: Request, response: Response) => {
+  const user = await requireSessionUser(request, response);
+  if (!user) {
+    return;
+  }
+
+  upload.single("image")(request, response, (error) => {
+    if (error) {
+      response.status(400).json({ message: error.message });
+      return;
+    }
+
+    if (!request.file) {
+      response.status(400).json({ message: "Image file is required" });
+      return;
+    }
+
+    response.status(201).json({
+      uploadedBy: user.id,
+      url: publicAssetUrl(request, request.file.filename)
+    });
+  });
 });
 
 apiRouter.get("/v1/listings", async (request: Request, response: Response) => {
