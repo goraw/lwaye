@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build API
+        run: npm run build --workspace @lwaye/api
+
+      - name: Test API
+        run: npm run test --workspace @lwaye/api
+
+      - name: Build Admin
+        run: npm run build --workspace @lwaye/admin
+
+      - name: Typecheck Mobile
+        run: npx tsc -p apps/mobile/tsconfig.json --noEmit
