@@ -43,8 +43,22 @@ Production options:
 
 If `NODE_ENV=production` and no SMS provider is configured, OTP start will fail instead of silently previewing codes.
 
+## Image storage
+
+The API now supports provider-based image storage.
+
+Local development:
+- default provider is `local`
+- uploaded files are written to `apps/api/uploads`
+- the API serves them from `/uploads/...`
+
+Production object storage:
+- set `STORAGE_PROVIDER=s3`
+- configure `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, and `S3_PUBLIC_BASE_URL`
+- optional: `S3_ENDPOINT` and `S3_FORCE_PATH_STYLE=true` for S3-compatible providers such as Cloudflare R2 or MinIO
+
 ## Next steps
 
-1. Replace local image storage with object storage/CDN
-2. Add push notifications, CI, migrations, and end-to-end tests
-3. Add device-level QA for mobile buyer, seller, and admin flows
+1. Add push notifications, CI, migrations, and end-to-end tests
+2. Add device-level QA for mobile buyer, seller, and admin flows
+3. Expand mobile listing detail, seller profile, and reporting/blocking UX

@@ -1,8 +1,6 @@
-import { mkdirSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import type { Request, Response } from "express";
 import multer from "multer";
+import { uploadListingImage } from "./storage";
 import { Router } from "express";
 import type { CreateListingRequest, CreateReportRequest, FeedQuery, Listing, ListingStatus, SendMessageRequest, StartThreadRequest, User, VerifyOtpRequest } from "@lwaye/shared";
 import { store as defaultStore } from "./store";
@@ -32,18 +30,9 @@ export interface ApiStore {
 }
 
 const allowedListingStatuses: ListingStatus[] = ["draft", "active", "sold", "hidden", "flagged"];
-const uploadsDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "uploads");
-
-mkdirSync(uploadsDirectory, { recursive: true });
 
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (_request, _file, callback) => callback(null, uploadsDirectory),
-    filename: (_request, file, callback) => {
-      const extension = path.extname(file.originalname || "").toLowerCase() || ".jpg";
-      callback(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${extension}`);
-    }
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }
 });
 
@@ -62,10 +51,6 @@ function isNonEmptyString(value: unknown): value is string {
 
 function isPositiveNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
-}
-
-function publicAssetUrl(request: Request, filename: string): string {
-  return `${request.protocol}://${request.get("host")}/uploads/${filename}`;
 }
 
 export function createApiRouter(store: ApiStore) {
@@ -157,7 +142,20 @@ export function createApiRouter(store: ApiStore) {
         response.status(400).json({ message: "Image file is required" });
         return;
       }
-      response.status(201).json({ uploadedBy: user.id, url: publicAssetUrl(request, request.file.filename) });
+      const file = request.file;
+      void (async () => {
+        try {
+          const uploaded = await uploadListingImage({
+            buffer: file.buffer,
+            originalName: file.originalname,
+            mimeType: file.mimetype,
+            requestBaseUrl: `${request.protocol}://${request.get("host")}`
+          });
+          response.status(201).json({ uploadedBy: user.id, url: uploaded.url });
+        } catch (uploadError) {
+          response.status(500).json({ message: (uploadError as Error).message });
+        }
+      })();
     });
   });
 
@@ -380,3 +378,6 @@ export function createApiRouter(store: ApiStore) {
 }
 
 export const apiRouter = createApiRouter(defaultStore);
+
+
+
