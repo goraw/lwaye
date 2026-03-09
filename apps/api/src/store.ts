@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomInt, randomUUID, timingSafeEqual } from "node:crypto";
 import type {
   Category,
   ChatThread,
@@ -104,12 +104,6 @@ type ReportRow = {
   notes: string | null;
   status: Report["status"];
   created_at: Date | string;
-};
-
-type SessionRow = {
-  token: string;
-  user_id: string;
-  expires_at: Date | string;
 };
 
 export type AuthSession = {
@@ -237,6 +231,23 @@ function mapReport(row: ReportRow): Report {
 
 function createId(prefix: string): string {
   return `${prefix}-${randomUUID().replace(/-/g, "").slice(0, 12)}`;
+}
+
+function hashOtpCode(code: string): string {
+  return createHash("sha256").update(code).digest("hex");
+}
+
+function generateOtpCode(): string {
+  return String(randomInt(0, 1_000_000)).padStart(6, "0");
+}
+
+function previewOtpCode(code: string): string {
+  return process.env.NODE_ENV === "production" ? "" : code;
+}
+
+function otpMatches(inputCode: string, storedHash: string): boolean {
+  const inputHash = hashOtpCode(inputCode);
+  return timingSafeEqual(Buffer.from(inputHash, "utf8"), Buffer.from(storedHash, "utf8"));
 }
 
 function buildFeedWhere(query: FeedQuery) {
@@ -373,18 +384,18 @@ export class MarketplaceStore {
 
   async startOtp(phone: string) {
     const id = createId("otp");
-    const code = "1234";
+    const code = generateOtpCode();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
     await pool.query(
       `INSERT INTO phone_verifications (id, phone, code_hash, expires_at)
        VALUES ($1, $2, $3, $4::timestamptz)`,
-      [id, phone, code, expiresAt]
+      [id, phone, hashOtpCode(code), expiresAt]
     );
 
     return {
       phone,
-      code,
+      code: previewOtpCode(code),
       expiresAt
     };
   }
@@ -394,19 +405,29 @@ export class MarketplaceStore {
     try {
       await client.query("BEGIN");
 
-      const verificationResult = await client.query<{ id: string }>(
-        `SELECT id
+      const verificationResult = await client.query<{ id: string; code_hash: string; attempt_count: number }>(
+        `SELECT id, code_hash, attempt_count
          FROM phone_verifications
          WHERE phone = $1
-           AND code_hash = $2
            AND consumed_at IS NULL
            AND expires_at > NOW()
          ORDER BY created_at DESC
          LIMIT 1`,
-        [input.phone, input.code]
+        [input.phone]
       );
 
-      if (verificationResult.rowCount === 0) {
+      if (verificationResult.rowCount === 0 || !verificationResult.rows[0]) {
+        throw new Error("Invalid or expired verification code");
+      }
+
+      const verification = verificationResult.rows[0];
+      if (!otpMatches(input.code, verification.code_hash)) {
+        await client.query(
+          `UPDATE phone_verifications
+           SET attempt_count = attempt_count + 1
+           WHERE id = $1`,
+          [verification.id]
+        );
         throw new Error("Invalid or expired verification code");
       }
 
@@ -414,7 +435,7 @@ export class MarketplaceStore {
         `UPDATE phone_verifications
          SET consumed_at = NOW()
          WHERE id = $1`,
-        [verificationResult.rows[0].id]
+        [verification.id]
       );
 
       const existingResult = await client.query<UserRow>(

@@ -31,6 +31,7 @@ The bootstrap scripts run SQL through the Docker container, so local `psql` is n
 ## Next steps
 
 1. Wire mobile and admin clients to the live API instead of shared seed data
-2. Replace mock OTP handling with a real provider and secure code hashing
+2. Replace the current dev-preview OTP flow with SMS delivery in production; OTP codes are now generated dynamically and stored hashed
 3. Add object storage, push notifications, CI, migrations, and end-to-end tests
+
 
