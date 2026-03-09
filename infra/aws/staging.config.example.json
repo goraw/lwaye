@@ -1,0 +1,23 @@
+{
+  "environment": "staging",
+  "region": "us-east-1",
+  "executionRoleArn": "arn:aws:iam::123456789012:role/lwaye-ecs-execution-role-staging",
+  "apiTaskRoleArn": "arn:aws:iam::123456789012:role/lwaye-api-task-role-staging",
+  "adminTaskRoleArn": "arn:aws:iam::123456789012:role/lwaye-admin-task-role-staging",
+  "logGroups": {
+    "api": "/ecs/lwaye-api-staging",
+    "admin": "/ecs/lwaye-admin-staging",
+    "migrate": "/ecs/lwaye-migrate-staging"
+  },
+  "parameters": {
+    "databaseUrl": "arn:aws:ssm:us-east-1:123456789012:parameter/lwaye/staging/api/database-url",
+    "twilioAccountSid": "arn:aws:ssm:us-east-1:123456789012:parameter/lwaye/staging/api/twilio-account-sid",
+    "twilioAuthToken": "arn:aws:secretsmanager:us-east-1:123456789012:secret:lwaye/staging/api/twilio-auth-token",
+    "twilioFromPhone": "arn:aws:ssm:us-east-1:123456789012:parameter/lwaye/staging/api/twilio-from-phone",
+    "s3Bucket": "arn:aws:ssm:us-east-1:123456789012:parameter/lwaye/staging/api/s3-bucket",
+    "s3Region": "arn:aws:ssm:us-east-1:123456789012:parameter/lwaye/staging/api/s3-region",
+    "s3AccessKeyId": "arn:aws:secretsmanager:us-east-1:123456789012:secret:lwaye/staging/api/s3-access-key-id",
+    "s3SecretAccessKey": "arn:aws:secretsmanager:us-east-1:123456789012:secret:lwaye/staging/api/s3-secret-access-key",
+    "s3PublicBaseUrl": "arn:aws:ssm:us-east-1:123456789012:parameter/lwaye/staging/api/s3-public-base-url"
+  }
+}

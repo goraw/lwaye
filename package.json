@@ -1,20 +1,21 @@
 {
-  "name": "lwaye",
-  "version": "0.1.0",
-  "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "scripts": {
-    "dev:api": "npm --workspace @lwaye/api run dev",
-    "dev:mobile": "npm --workspace @lwaye/mobile run dev",
-    "dev:admin": "npm --workspace @lwaye/admin run dev",
-    "db:up": "powershell -ExecutionPolicy Bypass -File ./scripts/db-up.ps1",
-    "db:migrate": "powershell -ExecutionPolicy Bypass -File ./scripts/db-migrate.ps1",
-    "db:init": "powershell -ExecutionPolicy Bypass -File ./scripts/db-init.ps1",
-    "db:reset": "powershell -ExecutionPolicy Bypass -File ./scripts/db-reset.ps1",
-    "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces"
-  }
+    "name":  "lwaye",
+    "version":  "0.1.0",
+    "private":  true,
+    "workspaces":  [
+                       "apps/*",
+                       "packages/*"
+                   ],
+    "scripts":  {
+                    "dev:api":  "npm --workspace @lwaye/api run dev",
+                    "dev:mobile":  "npm --workspace @lwaye/mobile run dev",
+                    "dev:admin":  "npm --workspace @lwaye/admin run dev",
+                    "db:up":  "powershell -ExecutionPolicy Bypass -File ./scripts/db-up.ps1",
+                    "db:migrate":  "powershell -ExecutionPolicy Bypass -File ./scripts/db-migrate.ps1",
+                    "db:init":  "powershell -ExecutionPolicy Bypass -File ./scripts/db-init.ps1",
+                    "db:reset":  "powershell -ExecutionPolicy Bypass -File ./scripts/db-reset.ps1",
+                    "build":  "npm run build --workspaces",
+                    "test":  "npm run test --workspaces",
+                    "aws:render-staging":  "node infra/aws/render-task-definitions.mjs --config infra/aws/staging.config.json"
+                }
 }

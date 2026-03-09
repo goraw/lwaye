@@ -34,10 +34,11 @@ The production Compose example reads `apps/api/.env.example` as a baseline. Befo
 
 ## AWS deploy flow
 
-1. Provision the AWS resources described in `infra/aws/README.md`.
-2. Populate the GitHub environment variables and secret expected by `.github/workflows/deploy-aws.yml`.
-3. Update the ECS task definition templates in `infra/aws/ecs` with real role, log, region, and parameter ARNs.
-4. Run the `Deploy AWS` workflow from GitHub Actions.
+1. Work through `infra/aws/staging-checklist.md`.
+2. Populate the GitHub environment variables and secret described in `infra/aws/github-environment.md`.
+3. Update the ECS task definition templates in `infra/aws/ecs` using `infra/aws/ecs-placeholder-map.md`.
+4. Generate concrete task definitions with `npm run aws:render-staging`.
+5. Run the `Deploy AWS` workflow from GitHub Actions.
 
 ## Notes
 
@@ -45,3 +46,5 @@ The production Compose example reads `apps/api/.env.example` as a baseline. Befo
 - The admin build injects `VITE_API_URL` at image build time.
 - The AWS workflow uses GitHub OIDC plus `aws-actions/configure-aws-credentials`, `aws-actions/amazon-ecr-login`, `aws-actions/amazon-ecs-render-task-definition`, and `aws-actions/amazon-ecs-deploy-task-definition`.
 - The deployment files are an operational baseline, not a full production platform. You still need TLS termination, backup policy, secret rotation, monitoring, and environment-specific infrastructure choices.
+
+
