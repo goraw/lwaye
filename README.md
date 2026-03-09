@@ -29,6 +29,27 @@ Example setup flow:
 
 The bootstrap scripts run SQL through the Docker container, so local `psql` is not required.
 
+## Environment
+
+Each app now ships with an environment template:
+
+- `apps/api/.env.example`
+- `apps/admin/.env.example`
+- `apps/mobile/.env.example`
+
+The API centralizes runtime config validation in `apps/api/src/config.ts`. At startup it now fails fast for invalid production settings, including:
+
+- missing Twilio credentials when `SMS_PROVIDER=twilio`
+- missing S3 credentials when `STORAGE_PROVIDER=s3`
+- missing SMS configuration in production
+- invalid `PORT`
+
+For local development, the intended defaults remain:
+
+- API database: `postgres://lwaye:lwaye@127.0.0.1:5432/lwaye`
+- admin API base URL: `http://127.0.0.1:4000`
+- mobile API base URL: `http://10.0.2.2:4000` for Android emulators
+
 ## SMS OTP
 
 The API now supports provider-based OTP delivery.
@@ -58,8 +79,20 @@ Production object storage:
 - configure `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, and `S3_PUBLIC_BASE_URL`
 - optional: `S3_ENDPOINT` and `S3_FORCE_PATH_STYLE=true` for S3-compatible providers such as Cloudflare R2 or MinIO
 
+## Push notifications
+
+The API supports provider-based push delivery.
+
+Local development:
+- default provider is `console`
+- push events are logged by the API
+
+Production option:
+- set `PUSH_PROVIDER=expo`
+- set `EXPO_PUBLIC_EAS_PROJECT_ID` in `apps/mobile/.env`
+
 ## Next steps
 
-1. Add push notifications, CI, and deployment automation
+1. Add deployment automation and hosting docs
 2. Add device-level QA for mobile buyer, seller, and admin flows
 3. Expand server-side blocking and moderation tooling

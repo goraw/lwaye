@@ -1,8 +1,10 @@
 import { createApp } from "./app";
+import { config, validateRuntimeConfig } from "./config";
 
-const port = Number(process.env.PORT ?? 4000);
+validateRuntimeConfig();
+
 const app = createApp();
 
-app.listen(port, () => {
-  console.log(`Lwaye API listening on http://localhost:${port}`);
+app.listen(config.port, () => {
+  console.log(`Lwaye API listening on http://localhost:${config.port}`);
 });

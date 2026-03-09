@@ -1,8 +1,6 @@
 import { Pool } from "pg";
-
-const defaultDatabaseUrl = "postgres://lwaye:lwaye@127.0.0.1:5432/lwaye";
+import { config } from "./config";
 
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL ?? defaultDatabaseUrl
+  connectionString: config.databaseUrl
 });
-

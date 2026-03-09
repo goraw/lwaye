@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { config } from "./config";
 
 type SmsProvider = "console" | "twilio" | "disabled";
 
@@ -8,27 +9,13 @@ type SmsDeliveryResult = {
 };
 
 function previewOtpCode(code: string): string {
-  return process.env.NODE_ENV === "production" ? "" : code;
-}
-
-function resolveProvider(): SmsProvider {
-  const configured = (process.env.SMS_PROVIDER ?? "").trim().toLowerCase();
-  if (configured === "twilio") {
-    return "twilio";
-  }
-  if (configured === "disabled") {
-    return "disabled";
-  }
-  if (configured === "console") {
-    return "console";
-  }
-  return process.env.NODE_ENV === "production" ? "disabled" : "console";
+  return config.nodeEnv === "production" ? "" : code;
 }
 
 async function sendViaTwilio(phone: string, code: string) {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const fromPhone = process.env.TWILIO_FROM_PHONE;
+  const accountSid = config.twilio.accountSid;
+  const authToken = config.twilio.authToken;
+  const fromPhone = config.twilio.fromPhone;
 
   if (!accountSid || !authToken || !fromPhone) {
     throw new Error("Twilio SMS provider is missing configuration");
@@ -57,7 +44,7 @@ async function sendViaTwilio(phone: string, code: string) {
 }
 
 export async function sendVerificationCode(phone: string, code: string): Promise<SmsDeliveryResult> {
-  const provider = resolveProvider();
+  const provider: SmsProvider = config.smsProvider;
 
   if (provider === "disabled") {
     throw new Error("SMS delivery is not configured");

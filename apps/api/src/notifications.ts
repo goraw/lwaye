@@ -1,3 +1,5 @@
+import { config } from "./config";
+
 type PushProvider = "console" | "expo";
 
 type PushPayload = {
@@ -6,10 +8,6 @@ type PushPayload = {
   body: string;
   data?: Record<string, string>;
 };
-
-function resolveProvider(): PushProvider {
-  return (process.env.PUSH_PROVIDER ?? "console").trim().toLowerCase() === "expo" ? "expo" : "console";
-}
 
 async function sendExpoPush(payloads: PushPayload[]) {
   const messages = payloads
@@ -45,7 +43,7 @@ export async function sendPushNotification(payloads: PushPayload[]) {
     return;
   }
 
-  if (resolveProvider() === "expo") {
+  if ((config.pushProvider as PushProvider) === "expo") {
     await sendExpoPush(payloads);
     return;
   }
