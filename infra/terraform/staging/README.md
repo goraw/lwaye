@@ -28,7 +28,7 @@ Required values:
 - `s3_access_key_id`
 - `s3_secret_access_key`
 
-## Apply flow
+## Local apply flow
 
 ```powershell
 cd infra/terraform/staging
@@ -36,6 +36,30 @@ terraform init
 terraform plan -out staging.tfplan
 terraform apply staging.tfplan
 ```
+
+## GitHub Actions workflow
+
+The repo now includes `.github/workflows/terraform-staging.yml` for manual `plan` and `apply` runs.
+
+GitHub `staging` environment secret requirements:
+
+- `AWS_GITHUB_ACTIONS_ROLE_ARN`
+- `TF_VAR_DB_PASSWORD`
+- `TF_VAR_TWILIO_ACCOUNT_SID`
+- `TF_VAR_TWILIO_AUTH_TOKEN`
+- `TF_VAR_TWILIO_FROM_PHONE`
+- `TF_VAR_S3_ACCESS_KEY_ID`
+- `TF_VAR_S3_SECRET_ACCESS_KEY`
+
+GitHub `staging` environment variable requirements:
+
+- `AWS_REGION`
+- `TF_VAR_PUBLIC_API_DOMAIN`
+
+The workflow uploads:
+
+- `terraform-staging-plan` on `plan`
+- `terraform-staging-outputs` on `apply`
 
 ## Important outputs
 
@@ -53,7 +77,7 @@ After apply, capture these outputs:
 
 Use them to:
 
-- populate the GitHub `staging` environment
+- populate the GitHub `staging` environment for app deploys
 - render `infra/aws/staging.config.json`
 - keep the ECS task definition templates aligned with real infrastructure
 
@@ -69,4 +93,3 @@ npm run aws:export-staging-config
 - The stack intentionally creates the infrastructure baseline, not the ECS services themselves. The GitHub deploy workflow still owns image rollout and service updates.
 - RDS is private and only reachable from the ECS security group.
 - The S3 bucket is private by default.
-
