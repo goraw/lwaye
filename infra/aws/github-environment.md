@@ -5,12 +5,12 @@ Create a GitHub environment named `staging` and set these values.
 ## Secret
 
 - `AWS_GITHUB_ACTIONS_ROLE_ARN`
-  - Example: `arn:aws:iam::123456789012:role/github-actions-lwaye-staging-deploy`
+  - Example: `arn:aws:iam::128055990601:role/github-actions-lwaye-staging-deploy`
 
 ## Variables
 
 - `AWS_REGION`
-  - Example: `us-east-1`
+  - Example: `us-east-2`
 - `AWS_ECR_API_REPOSITORY`
   - Example: `lwaye-api`
 - `AWS_ECR_ADMIN_REPOSITORY`
@@ -26,7 +26,7 @@ Create a GitHub environment named `staging` and set these values.
 - `AWS_ECS_SUBNETS`
   - Example: `subnet-aaa,subnet-bbb`
 - `AWS_ECS_SECURITY_GROUPS`
-  - Example: `sg-api,sg-admin`
+  - Example: `sg-aaa,sg-bbb`
 - `AWS_ECS_ASSIGN_PUBLIC_IP`
   - Example: `DISABLED`
 

@@ -4,8 +4,8 @@
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "256",
   "memory": "512",
-  "executionRoleArn": "arn:aws:iam::123456789012:role/lwaye-ecs-execution-role",
-  "taskRoleArn": "arn:aws:iam::123456789012:role/lwaye-admin-task-role",
+  "executionRoleArn": "arn:aws:iam::128055990601:role/lwaye-ecs-execution-role",
+  "taskRoleArn": "arn:aws:iam::128055990601:role/lwaye-admin-task-role",
   "containerDefinitions": [
     {
       "name": "admin",
@@ -22,7 +22,7 @@
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "/ecs/lwaye-admin",
-          "awslogs-region": "us-east-1",
+          "awslogs-region": "us-east-2",
           "awslogs-stream-prefix": "ecs"
         }
       }
