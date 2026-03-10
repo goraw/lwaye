@@ -100,16 +100,13 @@ Deployment artifacts are now included for the backend and admin apps:
 - `docker-compose.production.yml`
 - `docs/deployment.md`
 - `infra/aws/README.md`
+- `infra/terraform/staging`
 - `.github/workflows/deploy-aws.yml`
 
-The local production compose example includes Postgres, a portable migration job, the API service, and the admin service. It uses `apps/api/.env.example` as a checked-in baseline; replace those defaults with secure deployment env values before real rollout. For AWS, the repo now includes an ECR + ECS Fargate deployment workflow, ECS task definition templates, a staging checklist, a GitHub environment map, and a renderer for concrete staging task definitions.
+The local production compose example includes Postgres, a portable migration job, the API service, and the admin service. It uses `apps/api/.env.example` as a checked-in baseline; replace those defaults with secure deployment env values before real rollout. For AWS, Terraform is now the source of truth for staging infrastructure, with GitHub Actions handling image deployment and ECS rollout.
 
 ## Next steps
 
-1. Add cloud-specific deploy workflows for the chosen hosting target
+1. Apply Terraform and create the first staging environment
 2. Add device-level QA for mobile buyer, seller, and admin flows
 3. Expand server-side blocking and moderation tooling
-
-
-
-

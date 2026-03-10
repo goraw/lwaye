@@ -1,0 +1,7 @@
+db_password         = "replace-me"
+twilio_account_sid  = "replace-me"
+twilio_auth_token   = "replace-me"
+twilio_from_phone   = "+15555555555"
+s3_access_key_id    = "replace-me"
+s3_secret_access_key = "replace-me"
+public_api_domain   = "https://api-staging.lwaye.com"

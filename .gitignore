@@ -9,3 +9,8 @@ apps/api/uploads/*
 !apps/api/uploads/.gitkeep
 infra/aws/generated/
 infra/aws/staging.config.json
+**/.terraform/
+**/terraform.tfstate
+**/terraform.tfstate.*
+*.tfplan
+**/terraform.tfvars

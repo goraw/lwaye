@@ -16,6 +16,7 @@
                     "db:reset":  "powershell -ExecutionPolicy Bypass -File ./scripts/db-reset.ps1",
                     "build":  "npm run build --workspaces",
                     "test":  "npm run test --workspaces",
-                    "aws:render-staging":  "node infra/aws/render-task-definitions.mjs --config infra/aws/staging.config.json"
+                    "aws:render-staging":  "node infra/aws/render-task-definitions.mjs --config infra/aws/staging.config.json",
+                    "aws:export-staging-config":  "node infra/terraform/staging/export-aws-config.mjs infra/terraform/staging/outputs.json"
                 }
 }
