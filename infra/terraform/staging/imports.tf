@@ -52,3 +52,13 @@ import {
   to = aws_iam_openid_connect_provider.github
   id = "arn:aws:iam::128055990601:oidc-provider/token.actions.githubusercontent.com"
 }
+
+import {
+  to = aws_db_subnet_group.this
+  id = "lwaye-staging-db-subnet-group"
+}
+
+import {
+  to = aws_iam_role_policy_attachment.ecs_execution_managed
+  id = "lwaye-ecs-execution-role-staging/arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
