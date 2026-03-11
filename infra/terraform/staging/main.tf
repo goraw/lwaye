@@ -306,7 +306,7 @@ resource "aws_ecs_cluster" "this" {
 }
 
 resource "aws_lb" "this" {
-  name               = substr("${local.name_prefix}-alb", 0, 32)
+  name               = substr("${local.name_prefix}-alb-v2", 0, 32)
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
@@ -316,7 +316,7 @@ resource "aws_lb" "this" {
 }
 
 resource "aws_lb_target_group" "api" {
-  name        = substr("${local.name_prefix}-api-tg", 0, 32)
+  name        = substr("${local.name_prefix}-api-tg-v2", 0, 32)
   port        = 4000
   protocol    = "HTTP"
   target_type = "ip"
@@ -334,7 +334,7 @@ resource "aws_lb_target_group" "api" {
 }
 
 resource "aws_lb_target_group" "admin" {
-  name        = substr("${local.name_prefix}-admin-tg", 0, 32)
+  name        = substr("${local.name_prefix}-admin-tg-v2", 0, 32)
   port        = 80
   protocol    = "HTTP"
   target_type = "ip"
@@ -582,7 +582,7 @@ resource "aws_db_instance" "this" {
   skip_final_snapshot     = true
   deletion_protection     = false
   publicly_accessible     = false
-  backup_retention_period = 7
+  backup_retention_period = 0
   multi_az                = false
 
   tags = local.tags
@@ -619,4 +619,5 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   overwrite = true
   tags      = local.tags
 }
+
 

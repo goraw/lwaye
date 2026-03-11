@@ -57,18 +57,3 @@ import {
   to = aws_iam_role_policy_attachment.ecs_execution_managed
   id = "lwaye-ecs-execution-role-staging/arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
-
-import {
-  to = aws_lb.this
-  id = "arn:aws:elasticloadbalancing:us-east-2:128055990601:loadbalancer/app/lwaye-staging-alb/2ea8d68274c84bd8"
-}
-
-import {
-  to = aws_lb_target_group.api
-  id = "arn:aws:elasticloadbalancing:us-east-2:128055990601:targetgroup/lwaye-staging-api-tg/44544402793c19d5"
-}
-
-import {
-  to = aws_lb_target_group.admin
-  id = "arn:aws:elasticloadbalancing:us-east-2:128055990601:targetgroup/lwaye-staging-admin-tg/6fa601c024598622"
-}
