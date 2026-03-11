@@ -54,11 +54,21 @@ import {
 }
 
 import {
-  to = aws_db_subnet_group.this
-  id = "lwaye-staging-db-subnet-group"
+  to = aws_iam_role_policy_attachment.ecs_execution_managed
+  id = "lwaye-ecs-execution-role-staging/arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 import {
-  to = aws_iam_role_policy_attachment.ecs_execution_managed
-  id = "lwaye-ecs-execution-role-staging/arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  to = aws_lb.this
+  id = "arn:aws:elasticloadbalancing:us-east-2:128055990601:loadbalancer/app/lwaye-staging-alb/9f36f8f7dd2efa52"
+}
+
+import {
+  to = aws_lb_target_group.api
+  id = "arn:aws:elasticloadbalancing:us-east-2:128055990601:targetgroup/lwaye-staging-api-tg/e41ea72b63e8be70"
+}
+
+import {
+  to = aws_lb_target_group.admin
+  id = "arn:aws:elasticloadbalancing:us-east-2:128055990601:targetgroup/lwaye-staging-admin-tg/154f0361fe5de1b4"
 }

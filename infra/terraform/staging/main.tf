@@ -559,11 +559,11 @@ resource "aws_iam_role_policy" "github_deploy" {
 }
 
 resource "aws_db_subnet_group" "this" {
-  name       = "${local.name_prefix}-db-subnet-group"
+  name       = "${local.name_prefix}-db-subnet-group-v2"
   subnet_ids = aws_subnet.private[*].id
 
   tags = merge(local.tags, {
-    Name = "${local.name_prefix}-db-subnet-group"
+    Name = "${local.name_prefix}-db-subnet-group-v2"
   })
 }
 
@@ -619,3 +619,4 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   overwrite = true
   tags      = local.tags
 }
+
