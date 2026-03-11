@@ -37,7 +37,7 @@ variable "private_subnet_cidrs" {
 variable "db_instance_class" {
   description = "RDS instance class for staging."
   type        = string
-  default     = "db.t4g.micro"
+  default     = "db.t3.micro"
 }
 
 variable "db_allocated_storage" {
@@ -69,3 +69,4 @@ variable "public_api_domain" {
   type        = string
   default     = "https://api-staging.lwaye.com"
 }
+

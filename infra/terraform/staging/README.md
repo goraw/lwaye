@@ -23,6 +23,16 @@ Required values:
 
 - `db_password`
 
+The GitHub Actions workflows use an S3 backend with DynamoDB locking. Create these bootstrap resources once outside this stack:
+
+- S3 bucket for Terraform state
+- DynamoDB table for Terraform state locks
+
+Then set GitHub `staging` environment variables:
+
+- `TF_STATE_BUCKET`
+- `TF_STATE_LOCK_TABLE`
+
 ## Local apply flow
 
 ```powershell
@@ -48,6 +58,8 @@ GitHub `staging` environment variable requirements:
 
 - `AWS_REGION`
 - `TF_VAR_PUBLIC_API_DOMAIN`
+- `TF_STATE_BUCKET`
+- `TF_STATE_LOCK_TABLE`
 
 The workflows upload:
 
@@ -84,6 +96,7 @@ npm run aws:export-staging-config
 ## Notes
 
 - The stack intentionally creates the infrastructure baseline, not the ECS services themselves. The GitHub deploy workflow still owns image rollout and service updates.
+- Existing bootstrap resources such as ECR repositories, CloudWatch log groups, IAM roles, the GitHub OIDC provider, and the media bucket are imported into Terraform state on the first run.
 - RDS is private and only reachable from the ECS security group.
 - The S3 bucket is private by default and is accessed through the ECS task role, not static access keys.
 - SMS delivery uses AWS SNS through the API task role.

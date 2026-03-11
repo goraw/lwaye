@@ -214,6 +214,10 @@ resource "aws_ecr_repository" "api" {
   }
 
   tags = local.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_ecr_repository" "admin" {
@@ -225,6 +229,10 @@ resource "aws_ecr_repository" "admin" {
   }
 
   tags = local.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_s3_bucket" "media" {
@@ -233,6 +241,10 @@ resource "aws_s3_bucket" "media" {
   tags = merge(local.tags, {
     Name = "${local.name_prefix}-media"
   })
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "media" {
@@ -256,18 +268,30 @@ resource "aws_cloudwatch_log_group" "api" {
   name              = "/ecs/lwaye-api-${var.environment}"
   retention_in_days = 14
   tags              = local.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_cloudwatch_log_group" "admin" {
   name              = "/ecs/lwaye-admin-${var.environment}"
   retention_in_days = 14
   tags              = local.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_cloudwatch_log_group" "migrate" {
   name              = "/ecs/lwaye-migrate-${var.environment}"
   retention_in_days = 14
   tags              = local.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_ecs_cluster" "this" {
@@ -371,6 +395,10 @@ resource "aws_iam_role" "ecs_execution" {
   })
 
   tags = local.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_execution_managed" {
@@ -383,6 +411,10 @@ resource "aws_iam_role" "api_task" {
 
   assume_role_policy = aws_iam_role.ecs_execution.assume_role_policy
   tags               = local.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_iam_role" "admin_task" {
@@ -390,6 +422,10 @@ resource "aws_iam_role" "admin_task" {
 
   assume_role_policy = aws_iam_role.ecs_execution.assume_role_policy
   tags               = local.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_iam_role_policy" "api_task" {
@@ -433,6 +469,10 @@ resource "aws_iam_openid_connect_provider" "github" {
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
 
   tags = local.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_iam_role" "github_deploy" {
@@ -464,6 +504,10 @@ resource "aws_iam_role" "github_deploy" {
   })
 
   tags = local.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_iam_role_policy" "github_deploy" {
@@ -575,10 +619,3 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   overwrite = true
   tags      = local.tags
 }
-
-
-
-
-
-
-
