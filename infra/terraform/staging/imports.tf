@@ -60,15 +60,15 @@ import {
 
 import {
   to = aws_lb.this
-  id = "arn:aws:elasticloadbalancing:us-east-2:128055990601:loadbalancer/app/lwaye-staging-alb/9f36f8f7dd2efa52"
+  id = "arn:aws:elasticloadbalancing:us-east-2:128055990601:loadbalancer/app/lwaye-staging-alb/2ea8d68274c84bd8"
 }
 
 import {
   to = aws_lb_target_group.api
-  id = "arn:aws:elasticloadbalancing:us-east-2:128055990601:targetgroup/lwaye-staging-api-tg/e41ea72b63e8be70"
+  id = "arn:aws:elasticloadbalancing:us-east-2:128055990601:targetgroup/lwaye-staging-api-tg/44544402793c19d5"
 }
 
 import {
   to = aws_lb_target_group.admin
-  id = "arn:aws:elasticloadbalancing:us-east-2:128055990601:targetgroup/lwaye-staging-admin-tg/154f0361fe5de1b4"
+  id = "arn:aws:elasticloadbalancing:us-east-2:128055990601:targetgroup/lwaye-staging-admin-tg/6fa601c024598622"
 }
