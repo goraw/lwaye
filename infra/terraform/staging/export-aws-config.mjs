@@ -1,6 +1,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
+const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const outputPath = process.argv[2];
 if (!outputPath) {
   console.error("Usage: node export-aws-config.mjs <terraform-output-json>");
@@ -14,6 +16,6 @@ if (!config) {
   process.exit(1);
 }
 
-const targetPath = path.resolve(process.cwd(), "..", "..", "aws", "staging.config.json");
+const targetPath = path.resolve(scriptDirectory, "..", "..", "aws", "staging.config.json");
 writeFileSync(targetPath, `${JSON.stringify(config, null, 2)}\n`);
 console.log(`Wrote ${targetPath}`);
