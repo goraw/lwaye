@@ -77,7 +77,8 @@ Local development:
 
 Production object storage:
 - set `STORAGE_PROVIDER=s3`
-- configure `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, and `S3_PUBLIC_BASE_URL`
+- configure `S3_BUCKET`, `S3_REGION`, and `S3_PUBLIC_BASE_URL`
+- on AWS, prefer IAM role-based S3 access instead of static access keys
 - optional: `S3_ENDPOINT` and `S3_FORCE_PATH_STYLE=true` for S3-compatible providers such as Cloudflare R2 or MinIO
 
 ## Push notifications
@@ -112,3 +113,4 @@ The local production compose example includes Postgres, a portable migration job
 1. Apply Terraform and create the first staging environment
 2. Add device-level QA for mobile buyer, seller, and admin flows
 3. Expand server-side blocking and moderation tooling
+

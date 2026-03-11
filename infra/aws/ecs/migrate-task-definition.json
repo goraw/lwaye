@@ -23,8 +23,6 @@
         { "name": "DATABASE_URL", "valueFrom": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/database-url" },
         { "name": "S3_BUCKET", "valueFrom": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-bucket" },
         { "name": "S3_REGION", "valueFrom": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-region" },
-        { "name": "S3_ACCESS_KEY_ID", "valueFrom": "arn:aws:secretsmanager:us-east-2:128055990601:secret:lwaye/staging/api/s3-access-key-id" },
-        { "name": "S3_SECRET_ACCESS_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:128055990601:secret:lwaye/staging/api/s3-secret-access-key" },
         { "name": "S3_PUBLIC_BASE_URL", "valueFrom": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-public-base-url" }
       ],
       "logConfiguration": {

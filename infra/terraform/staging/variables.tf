@@ -64,18 +64,6 @@ variable "db_password" {
   sensitive   = true
 }
 
-variable "s3_access_key_id" {
-  description = "Object storage access key id."
-  type        = string
-  sensitive   = true
-}
-
-variable "s3_secret_access_key" {
-  description = "Object storage secret access key."
-  type        = string
-  sensitive   = true
-}
-
 variable "public_api_domain" {
   description = "Public API base URL for admin builds."
   type        = string

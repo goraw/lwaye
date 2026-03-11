@@ -13,7 +13,7 @@ This directory owns the AWS staging infrastructure for Lwaye.
 - CloudWatch log groups
 - S3 media bucket
 - RDS PostgreSQL instance and subnet group
-- SSM parameters and Secrets Manager secrets used by the app runtime
+- SSM parameters used by the app runtime
 
 ## Inputs
 
@@ -22,8 +22,6 @@ Start by copying `terraform.tfvars.example` to `terraform.tfvars` and filling th
 Required values:
 
 - `db_password`
-- `s3_access_key_id`
-- `s3_secret_access_key`
 
 ## Local apply flow
 
@@ -42,8 +40,6 @@ GitHub `staging` environment secret requirements:
 
 - `AWS_GITHUB_ACTIONS_ROLE_ARN`
 - `TF_VAR_DB_PASSWORD`
-- `TF_VAR_S3_ACCESS_KEY_ID`
-- `TF_VAR_S3_SECRET_ACCESS_KEY`
 
 GitHub `staging` environment variable requirements:
 
@@ -86,5 +82,5 @@ npm run aws:export-staging-config
 
 - The stack intentionally creates the infrastructure baseline, not the ECS services themselves. The GitHub deploy workflow still owns image rollout and service updates.
 - RDS is private and only reachable from the ECS security group.
-- The S3 bucket is private by default.
-- SMS delivery uses AWS SNS through the API task role, so no separate Twilio secrets are required.
+- The S3 bucket is private by default and is accessed through the ECS task role, not static access keys.
+- SMS delivery uses AWS SNS through the API task role.

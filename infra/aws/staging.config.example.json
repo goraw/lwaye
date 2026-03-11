@@ -13,8 +13,6 @@
     "databaseUrl": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/database-url",
     "s3Bucket": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-bucket",
     "s3Region": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-region",
-    "s3AccessKeyId": "arn:aws:secretsmanager:us-east-2:128055990601:secret:lwaye/staging/api/s3-access-key-id",
-    "s3SecretAccessKey": "arn:aws:secretsmanager:us-east-2:128055990601:secret:lwaye/staging/api/s3-secret-access-key",
     "s3PublicBaseUrl": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-public-base-url"
   }
 }

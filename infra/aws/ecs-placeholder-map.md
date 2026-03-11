@@ -23,10 +23,6 @@ Replace these secret references with staging values:
   - SSM parameter
 - `S3_REGION`
   - SSM parameter
-- `S3_ACCESS_KEY_ID`
-  - Secrets Manager secret
-- `S3_SECRET_ACCESS_KEY`
-  - Secrets Manager secret
 - `S3_PUBLIC_BASE_URL`
   - SSM parameter
 

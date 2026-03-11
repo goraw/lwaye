@@ -34,8 +34,6 @@ export const config = {
   s3: {
     bucket: optionalEnv("S3_BUCKET"),
     region: optionalEnv("S3_REGION"),
-    accessKeyId: optionalEnv("S3_ACCESS_KEY_ID"),
-    secretAccessKey: optionalEnv("S3_SECRET_ACCESS_KEY"),
     publicBaseUrl: optionalEnv("S3_PUBLIC_BASE_URL"),
     endpoint: optionalEnv("S3_ENDPOINT"),
     forcePathStyle: (process.env.S3_FORCE_PATH_STYLE ?? "false").trim().toLowerCase() === "true"
@@ -59,8 +57,6 @@ export function validateRuntimeConfig() {
   if (config.storageProvider === "s3") {
     env("S3_BUCKET");
     env("S3_REGION");
-    env("S3_ACCESS_KEY_ID");
-    env("S3_SECRET_ACCESS_KEY");
     env("S3_PUBLIC_BASE_URL");
   }
 }

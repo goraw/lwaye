@@ -24,7 +24,7 @@ Use this checklist to prepare the first `staging` deployment.
 ## 2. Create IAM roles
 
 - ECS task execution role for pulling from ECR and writing logs
-- API task role with access to SSM/Secrets Manager, S3, and SNS publish
+- API task role with access to SSM, S3, and SNS publish
 - Admin task role if needed
 - GitHub OIDC deploy role with permission to:
   - push to ECR
@@ -35,13 +35,11 @@ Use this checklist to prepare the first `staging` deployment.
 
 ## 3. Store runtime configuration
 
-Put these in SSM Parameter Store or Secrets Manager:
+Put these in SSM Parameter Store:
 
 - `DATABASE_URL`
 - `S3_BUCKET`
 - `S3_REGION`
-- `S3_ACCESS_KEY_ID`
-- `S3_SECRET_ACCESS_KEY`
 - `S3_PUBLIC_BASE_URL`
 
 ## 4. Update committed templates
@@ -58,7 +56,7 @@ Replace:
 - region values
 - execution/task role ARNs
 - CloudWatch log group names
-- SSM and Secrets Manager ARNs
+- SSM ARNs
 
 ## 5. Configure GitHub `staging` environment
 

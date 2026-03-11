@@ -68,8 +68,6 @@ function buildApiTask(config) {
           secret("DATABASE_URL", required(config.parameters.databaseUrl, "parameters.databaseUrl")),
           secret("S3_BUCKET", required(config.parameters.s3Bucket, "parameters.s3Bucket")),
           secret("S3_REGION", required(config.parameters.s3Region, "parameters.s3Region")),
-          secret("S3_ACCESS_KEY_ID", required(config.parameters.s3AccessKeyId, "parameters.s3AccessKeyId")),
-          secret("S3_SECRET_ACCESS_KEY", required(config.parameters.s3SecretAccessKey, "parameters.s3SecretAccessKey")),
           secret("S3_PUBLIC_BASE_URL", required(config.parameters.s3PublicBaseUrl, "parameters.s3PublicBaseUrl"))
         ],
         logConfiguration: awsLogs(required(config.logGroups.api, "logGroups.api"), required(config.region, "region"))
@@ -125,8 +123,6 @@ function buildMigrateTask(config) {
           secret("DATABASE_URL", required(config.parameters.databaseUrl, "parameters.databaseUrl")),
           secret("S3_BUCKET", required(config.parameters.s3Bucket, "parameters.s3Bucket")),
           secret("S3_REGION", required(config.parameters.s3Region, "parameters.s3Region")),
-          secret("S3_ACCESS_KEY_ID", required(config.parameters.s3AccessKeyId, "parameters.s3AccessKeyId")),
-          secret("S3_SECRET_ACCESS_KEY", required(config.parameters.s3SecretAccessKey, "parameters.s3SecretAccessKey")),
           secret("S3_PUBLIC_BASE_URL", required(config.parameters.s3PublicBaseUrl, "parameters.s3PublicBaseUrl"))
         ],
         logConfiguration: awsLogs(required(config.logGroups.migrate, "logGroups.migrate"), required(config.region, "region"))

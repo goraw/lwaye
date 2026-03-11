@@ -407,13 +407,6 @@ resource "aws_iam_role_policy" "api_task" {
         ]
       },
       {
-        Effect = "Allow"
-        Action = ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"]
-        Resource = [
-          "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:lwaye/${var.environment}/api/*"
-        ]
-      },
-      {
         Effect   = "Allow"
         Action   = ["sns:Publish"]
         Resource = ["*"]
@@ -583,25 +576,9 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   tags      = local.tags
 }
 
-resource "aws_secretsmanager_secret" "s3_access_key_id" {
-  name = "lwaye/${var.environment}/api/s3-access-key-id"
-  tags = local.tags
-}
 
-resource "aws_secretsmanager_secret_version" "s3_access_key_id" {
-  secret_id     = aws_secretsmanager_secret.s3_access_key_id.id
-  secret_string = var.s3_access_key_id
-}
 
-resource "aws_secretsmanager_secret" "s3_secret_access_key" {
-  name = "lwaye/${var.environment}/api/s3-secret-access-key"
-  tags = local.tags
-}
 
-resource "aws_secretsmanager_secret_version" "s3_secret_access_key" {
-  secret_id     = aws_secretsmanager_secret.s3_secret_access_key.id
-  secret_string = var.s3_secret_access_key
-}
 
 
 

@@ -59,12 +59,10 @@ output "staging_task_config" {
       migrate = aws_cloudwatch_log_group.migrate.name
     }
     parameters = {
-      databaseUrl       = aws_ssm_parameter.database_url.arn
-      s3Bucket          = aws_ssm_parameter.s3_bucket.arn
-      s3Region          = aws_ssm_parameter.s3_region.arn
-      s3AccessKeyId     = aws_secretsmanager_secret.s3_access_key_id.arn
-      s3SecretAccessKey = aws_secretsmanager_secret.s3_secret_access_key.arn
-      s3PublicBaseUrl   = aws_ssm_parameter.s3_public_base_url.arn
+      databaseUrl     = aws_ssm_parameter.database_url.arn
+      s3Bucket        = aws_ssm_parameter.s3_bucket.arn
+      s3Region        = aws_ssm_parameter.s3_region.arn
+      s3PublicBaseUrl = aws_ssm_parameter.s3_public_base_url.arn
     }
   }
   sensitive = true

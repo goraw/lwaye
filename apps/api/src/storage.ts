@@ -49,18 +49,15 @@ async function uploadToLocal(buffer: Buffer, originalName: string | undefined, m
 function createS3Client() {
   const region = config.s3.region;
   const endpoint = config.s3.endpoint;
-  const accessKeyId = config.s3.accessKeyId;
-  const secretAccessKey = config.s3.secretAccessKey;
 
-  if (!region || !accessKeyId || !secretAccessKey) {
+  if (!region) {
     throw new Error("S3 storage is missing configuration");
   }
 
   return new S3Client({
     region,
     endpoint: endpoint || undefined,
-    forcePathStyle: config.s3.forcePathStyle,
-    credentials: { accessKeyId, secretAccessKey }
+    forcePathStyle: config.s3.forcePathStyle
   });
 }
 

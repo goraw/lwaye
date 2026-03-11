@@ -1,4 +1,2 @@
-db_password          = "replace-me"
-s3_access_key_id     = "replace-me"
-s3_secret_access_key = "replace-me"
-public_api_domain    = "https://api-staging.lwaye.com"
+db_password       = "replace-me"
+public_api_domain = "https://api-staging.lwaye.com"
