@@ -21,15 +21,13 @@
       "environment": [
         { "name": "NODE_ENV", "value": "production" },
         { "name": "PORT", "value": "4000" },
-        { "name": "SMS_PROVIDER", "value": "twilio" },
+        { "name": "SMS_PROVIDER", "value": "sns" },
+        { "name": "SNS_REGION", "value": "us-east-2" },
         { "name": "STORAGE_PROVIDER", "value": "s3" },
         { "name": "PUSH_PROVIDER", "value": "expo" }
       ],
       "secrets": [
         { "name": "DATABASE_URL", "valueFrom": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/database-url" },
-        { "name": "TWILIO_ACCOUNT_SID", "valueFrom": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/twilio-account-sid" },
-        { "name": "TWILIO_AUTH_TOKEN", "valueFrom": "arn:aws:secretsmanager:us-east-2:128055990601:secret:lwaye/staging/api/twilio-auth-token" },
-        { "name": "TWILIO_FROM_PHONE", "valueFrom": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/twilio-from-phone" },
         { "name": "S3_BUCKET", "valueFrom": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-bucket" },
         { "name": "S3_REGION", "valueFrom": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-region" },
         { "name": "S3_ACCESS_KEY_ID", "valueFrom": "arn:aws:secretsmanager:us-east-2:128055990601:secret:lwaye/staging/api/s3-access-key-id" },

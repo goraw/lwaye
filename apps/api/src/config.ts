@@ -1,4 +1,4 @@
-export type SmsProvider = "console" | "twilio" | "disabled";
+export type SmsProvider = "console" | "sns" | "disabled";
 export type StorageProvider = "local" | "s3";
 export type PushProvider = "console" | "expo";
 
@@ -24,11 +24,11 @@ export const config = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: Number(process.env.PORT ?? 4000),
   databaseUrl: process.env.DATABASE_URL ?? "postgres://lwaye:lwaye@127.0.0.1:5432/lwaye",
-  smsProvider: parseProvider<SmsProvider>(process.env.SMS_PROVIDER ?? "", ["console", "twilio", "disabled"], process.env.NODE_ENV === "production" ? "disabled" : "console"),
-  twilio: {
-    accountSid: optionalEnv("TWILIO_ACCOUNT_SID"),
-    authToken: optionalEnv("TWILIO_AUTH_TOKEN"),
-    fromPhone: optionalEnv("TWILIO_FROM_PHONE")
+  smsProvider: parseProvider<SmsProvider>(process.env.SMS_PROVIDER ?? "", ["console", "sns", "disabled"], process.env.NODE_ENV === "production" ? "disabled" : "console"),
+  sns: {
+    region: optionalEnv("SNS_REGION") ?? optionalEnv("AWS_REGION"),
+    senderId: optionalEnv("SNS_SENDER_ID"),
+    smsType: process.env.SNS_SMS_TYPE?.trim() || "Transactional"
   },
   storageProvider: parseProvider<StorageProvider>(process.env.STORAGE_PROVIDER ?? "local", ["local", "s3"], "local"),
   s3: {
@@ -48,10 +48,8 @@ export function validateRuntimeConfig() {
     throw new Error("PORT must be a positive number");
   }
 
-  if (config.smsProvider === "twilio") {
-    env("TWILIO_ACCOUNT_SID");
-    env("TWILIO_AUTH_TOKEN");
-    env("TWILIO_FROM_PHONE");
+  if (config.smsProvider === "sns") {
+    env("SNS_REGION", process.env.AWS_REGION);
   }
 
   if (config.nodeEnv === "production" && config.smsProvider === "disabled") {

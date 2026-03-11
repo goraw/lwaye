@@ -24,7 +24,7 @@ Use this checklist to prepare the first `staging` deployment.
 ## 2. Create IAM roles
 
 - ECS task execution role for pulling from ECR and writing logs
-- API task role with access to SSM/Secrets Manager and S3
+- API task role with access to SSM/Secrets Manager, S3, and SNS publish
 - Admin task role if needed
 - GitHub OIDC deploy role with permission to:
   - push to ECR
@@ -38,9 +38,6 @@ Use this checklist to prepare the first `staging` deployment.
 Put these in SSM Parameter Store or Secrets Manager:
 
 - `DATABASE_URL`
-- `TWILIO_ACCOUNT_SID`
-- `TWILIO_AUTH_TOKEN`
-- `TWILIO_FROM_PHONE`
 - `S3_BUCKET`
 - `S3_REGION`
 - `S3_ACCESS_KEY_ID`

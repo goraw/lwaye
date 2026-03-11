@@ -13,18 +13,6 @@ locals {
     Environment = var.environment
     ManagedBy   = "terraform"
   }
-
-  api_secret_arns = {
-    database_url         = aws_ssm_parameter.database_url.arn
-    twilio_account_sid   = aws_ssm_parameter.twilio_account_sid.arn
-    twilio_auth_token    = aws_secretsmanager_secret.twilio_auth_token.arn
-    twilio_from_phone    = aws_ssm_parameter.twilio_from_phone.arn
-    s3_bucket            = aws_ssm_parameter.s3_bucket.arn
-    s3_region            = aws_ssm_parameter.s3_region.arn
-    s3_access_key_id     = aws_secretsmanager_secret.s3_access_key_id.arn
-    s3_secret_access_key = aws_secretsmanager_secret.s3_secret_access_key.arn
-    s3_public_base_url   = aws_ssm_parameter.s3_public_base_url.arn
-  }
 }
 
 resource "aws_vpc" "this" {
@@ -427,6 +415,11 @@ resource "aws_iam_role_policy" "api_task" {
       },
       {
         Effect   = "Allow"
+        Action   = ["sns:Publish"]
+        Resource = ["*"]
+      },
+      {
+        Effect   = "Allow"
         Action   = ["s3:ListBucket"]
         Resource = [aws_s3_bucket.media.arn]
       },
@@ -566,22 +559,6 @@ resource "aws_ssm_parameter" "database_url" {
   tags      = local.tags
 }
 
-resource "aws_ssm_parameter" "twilio_account_sid" {
-  name      = "/lwaye/${var.environment}/api/twilio-account-sid"
-  type      = "String"
-  value     = var.twilio_account_sid
-  overwrite = true
-  tags      = local.tags
-}
-
-resource "aws_ssm_parameter" "twilio_from_phone" {
-  name      = "/lwaye/${var.environment}/api/twilio-from-phone"
-  type      = "String"
-  value     = var.twilio_from_phone
-  overwrite = true
-  tags      = local.tags
-}
-
 resource "aws_ssm_parameter" "s3_bucket" {
   name      = "/lwaye/${var.environment}/api/s3-bucket"
   type      = "String"
@@ -606,16 +583,6 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   tags      = local.tags
 }
 
-resource "aws_secretsmanager_secret" "twilio_auth_token" {
-  name = "lwaye/${var.environment}/api/twilio-auth-token"
-  tags = local.tags
-}
-
-resource "aws_secretsmanager_secret_version" "twilio_auth_token" {
-  secret_id     = aws_secretsmanager_secret.twilio_auth_token.id
-  secret_string = var.twilio_auth_token
-}
-
 resource "aws_secretsmanager_secret" "s3_access_key_id" {
   name = "lwaye/${var.environment}/api/s3-access-key-id"
   tags = local.tags
@@ -635,3 +602,6 @@ resource "aws_secretsmanager_secret_version" "s3_secret_access_key" {
   secret_id     = aws_secretsmanager_secret.s3_secret_access_key.id
   secret_string = var.s3_secret_access_key
 }
+
+
+

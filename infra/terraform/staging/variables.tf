@@ -64,22 +64,6 @@ variable "db_password" {
   sensitive   = true
 }
 
-variable "twilio_account_sid" {
-  description = "Twilio account SID."
-  type        = string
-}
-
-variable "twilio_auth_token" {
-  description = "Twilio auth token."
-  type        = string
-  sensitive   = true
-}
-
-variable "twilio_from_phone" {
-  description = "Twilio sender phone number."
-  type        = string
-}
-
 variable "s3_access_key_id" {
   description = "Object storage access key id."
   type        = string

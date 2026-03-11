@@ -35,3 +35,4 @@ Create a GitHub environment named `staging` and set these values.
 - `AWS_PUBLIC_API_URL` is injected into the admin image build, so it must be the public API URL the browser can reach.
 - `AWS_ECS_SUBNETS` and `AWS_ECS_SECURITY_GROUPS` are used by the migration task as well as service updates.
 - If your API and admin services need different security groups, split the workflow later. For the first staging deployment, a shared ECS security group is the simplest path.
+- The API task role should include `sns:Publish` because OTP delivery is sent through AWS SNS.

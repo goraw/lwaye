@@ -10,6 +10,7 @@ This repository now includes container build targets for the API and admin apps,
 - `infra/aws/README.md`: AWS-specific deployment setup and GitHub environment requirements
 - `infra/terraform/staging`: Terraform source of truth for staging AWS infrastructure
 - `.github/workflows/deploy-aws.yml`: GitHub Actions workflow for ECR + ECS deployment
+- `.github/workflows/terraform-staging.yml`: GitHub Actions workflow for staging Terraform plan/apply
 
 ## Environment
 
@@ -43,8 +44,8 @@ The production Compose example reads `apps/api/.env.example` as a baseline. Befo
 ## Notes
 
 - Terraform should own the long-lived AWS infrastructure.
+- OTP delivery is designed for AWS SNS, not Twilio.
 - The API container currently runs through `tsx` so it can consume the workspace-local shared package without a separate packaging step.
 - The admin build injects `VITE_API_URL` at image build time.
 - The AWS workflow uses GitHub OIDC plus `aws-actions/configure-aws-credentials`, `aws-actions/amazon-ecr-login`, `aws-actions/amazon-ecs-render-task-definition`, and `aws-actions/amazon-ecs-deploy-task-definition`.
 - The deployment files are an operational baseline, not a full production platform. You still need TLS termination, backup policy, secret rotation, monitoring, and environment-specific infrastructure choices.
-

@@ -11,9 +11,6 @@
   },
   "parameters": {
     "databaseUrl": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/database-url",
-    "twilioAccountSid": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/twilio-account-sid",
-    "twilioAuthToken": "arn:aws:secretsmanager:us-east-2:128055990601:secret:lwaye/staging/api/twilio-auth-token",
-    "twilioFromPhone": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/twilio-from-phone",
     "s3Bucket": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-bucket",
     "s3Region": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-region",
     "s3AccessKeyId": "arn:aws:secretsmanager:us-east-2:128055990601:secret:lwaye/staging/api/s3-access-key-id",

@@ -31,6 +31,7 @@ Use Terraform in `infra/terraform/staging` as the source of truth for staging in
   - one standalone task definition for `migrate`
 - RDS PostgreSQL for application data
 - S3-compatible object storage for listing images
+- AWS SNS for OTP SMS delivery
 - SSM Parameter Store and Secrets Manager for runtime configuration
 - CloudWatch Logs for task logs
 - ALB in front of ECS services
@@ -80,4 +81,3 @@ For a concrete staging setup, use:
 5. Leave `run_migrations=true` unless you intentionally want an image-only rollout.
 6. The workflow builds and pushes the `api` and `admin` images to ECR.
 7. The workflow optionally runs the migration task, then deploys the ECS services.
-

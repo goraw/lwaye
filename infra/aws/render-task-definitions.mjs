@@ -59,15 +59,13 @@ function buildApiTask(config) {
         environment: [
           environment("NODE_ENV", "production"),
           environment("PORT", "4000"),
-          environment("SMS_PROVIDER", "twilio"),
+          environment("SMS_PROVIDER", "sns"),
+          environment("SNS_REGION", required(config.region, "region")),
           environment("STORAGE_PROVIDER", "s3"),
           environment("PUSH_PROVIDER", "expo")
         ],
         secrets: [
           secret("DATABASE_URL", required(config.parameters.databaseUrl, "parameters.databaseUrl")),
-          secret("TWILIO_ACCOUNT_SID", required(config.parameters.twilioAccountSid, "parameters.twilioAccountSid")),
-          secret("TWILIO_AUTH_TOKEN", required(config.parameters.twilioAuthToken, "parameters.twilioAuthToken")),
-          secret("TWILIO_FROM_PHONE", required(config.parameters.twilioFromPhone, "parameters.twilioFromPhone")),
           secret("S3_BUCKET", required(config.parameters.s3Bucket, "parameters.s3Bucket")),
           secret("S3_REGION", required(config.parameters.s3Region, "parameters.s3Region")),
           secret("S3_ACCESS_KEY_ID", required(config.parameters.s3AccessKeyId, "parameters.s3AccessKeyId")),
@@ -118,15 +116,13 @@ function buildMigrateTask(config) {
         command: ["npm", "run", "migrate", "--workspace", "@lwaye/api"],
         environment: [
           environment("NODE_ENV", "production"),
-          environment("SMS_PROVIDER", "twilio"),
+          environment("SMS_PROVIDER", "sns"),
+          environment("SNS_REGION", required(config.region, "region")),
           environment("STORAGE_PROVIDER", "s3"),
           environment("PUSH_PROVIDER", "expo")
         ],
         secrets: [
           secret("DATABASE_URL", required(config.parameters.databaseUrl, "parameters.databaseUrl")),
-          secret("TWILIO_ACCOUNT_SID", required(config.parameters.twilioAccountSid, "parameters.twilioAccountSid")),
-          secret("TWILIO_AUTH_TOKEN", required(config.parameters.twilioAuthToken, "parameters.twilioAuthToken")),
-          secret("TWILIO_FROM_PHONE", required(config.parameters.twilioFromPhone, "parameters.twilioFromPhone")),
           secret("S3_BUCKET", required(config.parameters.s3Bucket, "parameters.s3Bucket")),
           secret("S3_REGION", required(config.parameters.s3Region, "parameters.s3Region")),
           secret("S3_ACCESS_KEY_ID", required(config.parameters.s3AccessKeyId, "parameters.s3AccessKeyId")),

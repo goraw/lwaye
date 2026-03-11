@@ -22,9 +22,6 @@ Start by copying `terraform.tfvars.example` to `terraform.tfvars` and filling th
 Required values:
 
 - `db_password`
-- `twilio_account_sid`
-- `twilio_auth_token`
-- `twilio_from_phone`
 - `s3_access_key_id`
 - `s3_secret_access_key`
 
@@ -45,9 +42,6 @@ GitHub `staging` environment secret requirements:
 
 - `AWS_GITHUB_ACTIONS_ROLE_ARN`
 - `TF_VAR_DB_PASSWORD`
-- `TF_VAR_TWILIO_ACCOUNT_SID`
-- `TF_VAR_TWILIO_AUTH_TOKEN`
-- `TF_VAR_TWILIO_FROM_PHONE`
 - `TF_VAR_S3_ACCESS_KEY_ID`
 - `TF_VAR_S3_SECRET_ACCESS_KEY`
 
@@ -93,3 +87,4 @@ npm run aws:export-staging-config
 - The stack intentionally creates the infrastructure baseline, not the ECS services themselves. The GitHub deploy workflow still owns image rollout and service updates.
 - RDS is private and only reachable from the ECS security group.
 - The S3 bucket is private by default.
+- SMS delivery uses AWS SNS through the API task role, so no separate Twilio secrets are required.

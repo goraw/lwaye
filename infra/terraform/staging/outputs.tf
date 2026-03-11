@@ -60,9 +60,6 @@ output "staging_task_config" {
     }
     parameters = {
       databaseUrl       = aws_ssm_parameter.database_url.arn
-      twilioAccountSid  = aws_ssm_parameter.twilio_account_sid.arn
-      twilioAuthToken   = aws_secretsmanager_secret.twilio_auth_token.arn
-      twilioFromPhone   = aws_ssm_parameter.twilio_from_phone.arn
       s3Bucket          = aws_ssm_parameter.s3_bucket.arn
       s3Region          = aws_ssm_parameter.s3_region.arn
       s3AccessKeyId     = aws_secretsmanager_secret.s3_access_key_id.arn

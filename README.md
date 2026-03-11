@@ -39,7 +39,7 @@ Each app now ships with an environment template:
 
 The API centralizes runtime config validation in `apps/api/src/config.ts`. At startup it now fails fast for invalid production settings, including:
 
-- missing Twilio credentials when `SMS_PROVIDER=twilio`
+- missing SNS region configuration when `SMS_PROVIDER=sns`
 - missing S3 credentials when `STORAGE_PROVIDER=s3`
 - missing SMS configuration in production
 - invalid `PORT`
@@ -58,10 +58,11 @@ Local development:
 - default provider is `console`
 - OTP codes are logged by the API and still returned in the response for the current demo clients
 
-Production options:
-- set `SMS_PROVIDER=twilio`
-- configure `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `TWILIO_FROM_PHONE`
-- in production, OTP codes are no longer returned in the response preview
+Production option:
+- set `SMS_PROVIDER=sns`
+- configure `SNS_REGION` or `AWS_REGION`
+- optional: set `SNS_SENDER_ID` and `SNS_SMS_TYPE`
+- grant `sns:Publish` to the API task role
 
 If `NODE_ENV=production` and no SMS provider is configured, OTP start will fail instead of silently previewing codes.
 
@@ -102,6 +103,7 @@ Deployment artifacts are now included for the backend and admin apps:
 - `infra/aws/README.md`
 - `infra/terraform/staging`
 - `.github/workflows/deploy-aws.yml`
+- `.github/workflows/terraform-staging.yml`
 
 The local production compose example includes Postgres, a portable migration job, the API service, and the admin service. It uses `apps/api/.env.example` as a checked-in baseline; replace those defaults with secure deployment env values before real rollout. For AWS, Terraform is now the source of truth for staging infrastructure, with one workflow for Terraform and a separate workflow for application deployment and ECS rollout.
 
@@ -110,4 +112,3 @@ The local production compose example includes Postgres, a portable migration job
 1. Apply Terraform and create the first staging environment
 2. Add device-level QA for mobile buyer, seller, and admin flows
 3. Expand server-side blocking and moderation tooling
-

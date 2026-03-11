@@ -19,12 +19,6 @@ Replace these secret references with staging values:
 
 - `DATABASE_URL`
   - SSM parameter or secret holding the RDS connection string
-- `TWILIO_ACCOUNT_SID`
-  - SSM parameter
-- `TWILIO_AUTH_TOKEN`
-  - Secrets Manager secret
-- `TWILIO_FROM_PHONE`
-  - SSM parameter
 - `S3_BUCKET`
   - SSM parameter
 - `S3_REGION`
@@ -35,6 +29,11 @@ Replace these secret references with staging values:
   - Secrets Manager secret
 - `S3_PUBLIC_BASE_URL`
   - SSM parameter
+
+Environment values to keep aligned:
+
+- `SMS_PROVIDER=sns`
+- `SNS_REGION=<aws region>`
 
 ## Admin task definition
 
