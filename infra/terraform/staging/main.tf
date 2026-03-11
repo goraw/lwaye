@@ -570,7 +570,7 @@ resource "aws_db_subnet_group" "this" {
 resource "aws_db_instance" "this" {
   identifier              = "${local.name_prefix}-postgres"
   engine                  = "postgres"
-  engine_version          = "16.3"
+  engine_version          = var.db_engine_version
   instance_class          = var.db_instance_class
   allocated_storage       = var.db_allocated_storage
   storage_type            = "gp3"
@@ -619,5 +619,6 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   overwrite = true
   tags      = local.tags
 }
+
 
 

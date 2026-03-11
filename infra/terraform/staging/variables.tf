@@ -34,6 +34,11 @@ variable "private_subnet_cidrs" {
   default     = ["10.40.128.0/20", "10.40.144.0/20"]
 }
 
+variable "db_engine_version" {
+  description = "RDS engine major version for staging."
+  type        = string
+  default     = "15"
+}
 variable "db_instance_class" {
   description = "RDS instance class for staging."
   type        = string
@@ -69,4 +74,5 @@ variable "public_api_domain" {
   type        = string
   default     = "https://api-staging.lwaye.com"
 }
+
 
