@@ -1,27 +1,19 @@
-name: Terraform Staging
+name: Terraform Staging Apply
 
 on:
   workflow_dispatch:
-    inputs:
-      action:
-        description: Terraform action to run
-        required: true
-        type: choice
-        options:
-          - plan
-          - apply
 
 permissions:
   contents: read
   id-token: write
 
 concurrency:
-  group: terraform-staging
+  group: terraform-staging-apply
   cancel-in-progress: false
 
 jobs:
-  terraform:
-    name: Terraform ${{ github.event.inputs.action }}
+  terraform-apply:
+    name: Terraform Apply
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: staging
@@ -57,25 +49,13 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=staging.tfplan
 
-      - name: Upload plan artifact
-        if: ${{ github.event.inputs.action == 'plan' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-staging-plan
-          path: infra/terraform/staging/staging.tfplan
-          if-no-files-found: error
-          retention-days: 7
-
       - name: Terraform Apply
-        if: ${{ github.event.inputs.action == 'apply' }}
         run: terraform apply -auto-approve staging.tfplan
 
       - name: Export Terraform outputs
-        if: ${{ github.event.inputs.action == 'apply' }}
         run: terraform output -json > outputs.json
 
       - name: Upload Terraform outputs
-        if: ${{ github.event.inputs.action == 'apply' }}
         uses: actions/upload-artifact@v4
         with:
           name: terraform-staging-outputs

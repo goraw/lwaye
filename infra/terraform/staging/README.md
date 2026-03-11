@@ -32,9 +32,12 @@ terraform plan -out staging.tfplan
 terraform apply staging.tfplan
 ```
 
-## GitHub Actions workflow
+## GitHub Actions workflows
 
-The repo now includes `.github/workflows/terraform-staging.yml` for manual `plan` and `apply` runs.
+The repo now includes two manual workflows:
+
+- `.github/workflows/terraform-staging-plan.yml`
+- `.github/workflows/terraform-staging-apply.yml`
 
 GitHub `staging` environment secret requirements:
 
@@ -46,10 +49,10 @@ GitHub `staging` environment variable requirements:
 - `AWS_REGION`
 - `TF_VAR_PUBLIC_API_DOMAIN`
 
-The workflow uploads:
+The workflows upload:
 
-- `terraform-staging-plan` on `plan`
-- `terraform-staging-outputs` on `apply`
+- `terraform-staging-plan` from the plan workflow
+- `terraform-staging-outputs` from the apply workflow
 
 ## Important outputs
 

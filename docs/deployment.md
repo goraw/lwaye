@@ -10,7 +10,8 @@ This repository now includes container build targets for the API and admin apps,
 - `infra/aws/README.md`: AWS-specific deployment setup and GitHub environment requirements
 - `infra/terraform/staging`: Terraform source of truth for staging AWS infrastructure
 - `.github/workflows/deploy-aws.yml`: GitHub Actions workflow for ECR + ECS deployment
-- `.github/workflows/terraform-staging.yml`: GitHub Actions workflow for staging Terraform plan/apply
+- `.github/workflows/terraform-staging-plan.yml`: GitHub Actions workflow for staging Terraform plan
+- `.github/workflows/terraform-staging-apply.yml`: GitHub Actions workflow for staging Terraform apply
 
 ## Environment
 
@@ -36,10 +37,12 @@ The production Compose example reads `apps/api/.env.example` as a baseline. Befo
 
 ## AWS deploy flow
 
-1. Run the Terraform staging workflow or apply Terraform locally from `infra/terraform/staging`.
-2. Populate the GitHub environment variables and secret described in `infra/aws/github-environment.md`.
-3. Generate staging task definitions with `npm run aws:render-staging`.
-4. Run the `Deploy AWS` workflow from GitHub Actions.
+1. Run the Terraform staging plan workflow.
+2. Review the plan.
+3. Run the Terraform staging apply workflow.
+4. Populate the GitHub environment variables and secret described in `infra/aws/github-environment.md`.
+5. Generate staging task definitions with `npm run aws:render-staging`.
+6. Run the `Deploy AWS` workflow from GitHub Actions.
 
 ## Notes
 
