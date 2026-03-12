@@ -53,7 +53,7 @@ jobs:
         id: render-migrate-task
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: infra/aws/ecs/migrate-task-definition.json
+          task-definition: infra/aws/generated/staging/migrate-task-definition.json
           container-name: migrate
           image: ${{ steps.image-meta.outputs.api_image }}
 
@@ -73,7 +73,7 @@ jobs:
         id: render-api-task
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: infra/aws/ecs/api-task-definition.json
+          task-definition: infra/aws/generated/staging/api-task-definition.json
           container-name: api
           image: ${{ steps.image-meta.outputs.api_image }}
 
@@ -89,7 +89,7 @@ jobs:
         id: render-admin-task
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: infra/aws/ecs/admin-task-definition.json
+          task-definition: infra/aws/generated/staging/admin-task-definition.json
           container-name: admin
           image: ${{ steps.image-meta.outputs.admin_image }}
 
@@ -100,3 +100,4 @@ jobs:
           service: ${{ vars.AWS_ECS_ADMIN_SERVICE }}
           cluster: ${{ vars.AWS_ECS_CLUSTER }}
           wait-for-service-stability: true
+
