@@ -608,7 +608,7 @@ resource "aws_db_instance" "this" {
 resource "aws_ssm_parameter" "database_url" {
   name      = "/lwaye/${var.environment}/api/database-url"
   type      = "SecureString"
-  value     = "postgres://${var.db_username}:${urlencode(var.db_password)}@${aws_db_instance.this.address}:5432/${var.db_name}?sslmode=require"
+  value     = "postgres://${var.db_username}:${urlencode(var.db_password)}@${aws_db_instance.this.address}:5432/${var.db_name}?uselibpqcompat=true&sslmode=require"
   overwrite = true
   tags      = local.tags
 }
@@ -636,6 +636,7 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   overwrite = true
   tags      = local.tags
 }
+
 
 
 
