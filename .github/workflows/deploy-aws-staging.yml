@@ -49,6 +49,9 @@ jobs:
           docker build -f apps/admin/Dockerfile --build-arg VITE_API_URL="${{ vars.AWS_PUBLIC_API_URL }}" -t "${{ steps.image-meta.outputs.admin_image }}" .
           docker push "${{ steps.image-meta.outputs.admin_image }}"
 
+      - name: Generate staging task definitions
+        run: node infra/aws/render-task-definitions.mjs
+
       - name: Render migration task definition
         id: render-migrate-task
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -100,4 +103,3 @@ jobs:
           service: ${{ vars.AWS_ECS_ADMIN_SERVICE }}
           cluster: ${{ vars.AWS_ECS_CLUSTER }}
           wait-for-service-stability: true
-
