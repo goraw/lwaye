@@ -2,6 +2,12 @@ name: Deploy AWS Staging
 
 on:
   workflow_dispatch:
+    inputs:
+      run_seeds:
+        description: Run staging seed task after migrations
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: read
@@ -64,6 +70,28 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.render-migrate-task.outputs.task-definition }}
+          cluster: ${{ vars.AWS_ECS_CLUSTER }}
+          run-task: true
+          wait-for-task-stopped: true
+          run-task-launch-type: FARGATE
+          run-task-subnets: ${{ vars.AWS_ECS_SUBNETS }}
+          run-task-security-groups: ${{ vars.AWS_ECS_SECURITY_GROUPS }}
+          run-task-assign-public-IP: ${{ vars.AWS_ECS_ASSIGN_PUBLIC_IP }}
+
+      - name: Render seed task definition
+        if: ${{ inputs.run_seeds }}
+        id: render-seed-task
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/aws/generated/staging/seed-task-definition.json
+          container-name: seed
+          image: ${{ steps.image-meta.outputs.api_image }}
+
+      - name: Run seeds
+        if: ${{ inputs.run_seeds }}
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-seed-task.outputs.task-definition }}
           cluster: ${{ vars.AWS_ECS_CLUSTER }}
           run-task: true
           wait-for-task-stopped: true

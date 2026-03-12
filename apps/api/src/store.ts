@@ -285,7 +285,7 @@ function buildFeedWhere(query: FeedQuery) {
   return { conditions, values };
 }
 
-async function queryListings(whereClause: string, values: Array<string | number>) {
+async function queryListings(whereClause: string, values: Array<string | number>, limitClause = "") {
   const result = await pool.query<ListingRow>(
     `SELECT
        l.id,
@@ -305,7 +305,8 @@ async function queryListings(whereClause: string, values: Array<string | number>
      LEFT JOIN listing_images li ON li.listing_id = l.id
      ${whereClause}
      GROUP BY l.id
-     ORDER BY l.created_at DESC`,
+     ORDER BY l.created_at DESC
+     ${limitClause}`,
     values
   );
 
@@ -573,7 +574,7 @@ export class MarketplaceStore {
     const limit = query.limit ?? 20;
     const { conditions, values } = buildFeedWhere(query);
     values.push(limit + 1);
-    const items = await queryListings(`WHERE ${conditions.join(" AND ")} LIMIT $${values.length}`, values);
+    const items = await queryListings(`WHERE ${conditions.join(" AND ")}`, values, `LIMIT $${values.length}`);
 
     return {
       items: items.slice(0, limit),
@@ -869,6 +870,9 @@ export class MarketplaceStore {
 }
 
 export const store = new MarketplaceStore();
+
+
+
 
 
 

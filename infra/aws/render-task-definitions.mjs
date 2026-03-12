@@ -41,6 +41,25 @@ function environment(name, value) {
   return { name, value };
 }
 
+function sharedTaskEnvironment(config) {
+  return [
+    environment("NODE_ENV", "production"),
+    environment("SMS_PROVIDER", "sns"),
+    environment("SNS_REGION", required(config.region, "region")),
+    environment("STORAGE_PROVIDER", "s3"),
+    environment("PUSH_PROVIDER", "expo")
+  ];
+}
+
+function sharedTaskSecrets(config) {
+  return [
+    secret("DATABASE_URL", required(config.parameters.databaseUrl, "parameters.databaseUrl")),
+    secret("S3_BUCKET", required(config.parameters.s3Bucket, "parameters.s3Bucket")),
+    secret("S3_REGION", required(config.parameters.s3Region, "parameters.s3Region")),
+    secret("S3_PUBLIC_BASE_URL", required(config.parameters.s3PublicBaseUrl, "parameters.s3PublicBaseUrl"))
+  ];
+}
+
 function buildApiTask(config) {
   return {
     family: `lwaye-api-${config.environment}`,
@@ -56,20 +75,8 @@ function buildApiTask(config) {
         image: "REPLACE_ME",
         essential: true,
         portMappings: [{ containerPort: 4000, hostPort: 4000, protocol: "tcp" }],
-        environment: [
-          environment("NODE_ENV", "production"),
-          environment("PORT", "4000"),
-          environment("SMS_PROVIDER", "sns"),
-          environment("SNS_REGION", required(config.region, "region")),
-          environment("STORAGE_PROVIDER", "s3"),
-          environment("PUSH_PROVIDER", "expo")
-        ],
-        secrets: [
-          secret("DATABASE_URL", required(config.parameters.databaseUrl, "parameters.databaseUrl")),
-          secret("S3_BUCKET", required(config.parameters.s3Bucket, "parameters.s3Bucket")),
-          secret("S3_REGION", required(config.parameters.s3Region, "parameters.s3Region")),
-          secret("S3_PUBLIC_BASE_URL", required(config.parameters.s3PublicBaseUrl, "parameters.s3PublicBaseUrl"))
-        ],
+        environment: [environment("PORT", "4000"), ...sharedTaskEnvironment(config)],
+        secrets: sharedTaskSecrets(config),
         logConfiguration: awsLogs(required(config.logGroups.api, "logGroups.api"), required(config.region, "region"))
       }
     ]
@@ -97,9 +104,9 @@ function buildAdminTask(config) {
   };
 }
 
-function buildMigrateTask(config) {
+function buildOneOffApiTask(config, family, name, command) {
   return {
-    family: `lwaye-migrate-${config.environment}`,
+    family,
     networkMode: "awsvpc",
     requiresCompatibilities: ["FARGATE"],
     cpu: "256",
@@ -108,27 +115,24 @@ function buildMigrateTask(config) {
     taskRoleArn: required(config.apiTaskRoleArn, "apiTaskRoleArn"),
     containerDefinitions: [
       {
-        name: "migrate",
+        name,
         image: "REPLACE_ME",
         essential: true,
-        command: ["npm", "run", "migrate", "--workspace", "@lwaye/api"],
-        environment: [
-          environment("NODE_ENV", "production"),
-          environment("SMS_PROVIDER", "sns"),
-          environment("SNS_REGION", required(config.region, "region")),
-          environment("STORAGE_PROVIDER", "s3"),
-          environment("PUSH_PROVIDER", "expo")
-        ],
-        secrets: [
-          secret("DATABASE_URL", required(config.parameters.databaseUrl, "parameters.databaseUrl")),
-          secret("S3_BUCKET", required(config.parameters.s3Bucket, "parameters.s3Bucket")),
-          secret("S3_REGION", required(config.parameters.s3Region, "parameters.s3Region")),
-          secret("S3_PUBLIC_BASE_URL", required(config.parameters.s3PublicBaseUrl, "parameters.s3PublicBaseUrl"))
-        ],
+        command,
+        environment: sharedTaskEnvironment(config),
+        secrets: sharedTaskSecrets(config),
         logConfiguration: awsLogs(required(config.logGroups.migrate, "logGroups.migrate"), required(config.region, "region"))
       }
     ]
   };
+}
+
+function buildMigrateTask(config) {
+  return buildOneOffApiTask(config, `lwaye-migrate-${config.environment}`, "migrate", ["npm", "run", "migrate", "--workspace", "@lwaye/api"]);
+}
+
+function buildSeedTask(config) {
+  return buildOneOffApiTask(config, `lwaye-seed-${config.environment}`, "seed", ["npm", "run", "seed", "--workspace", "@lwaye/api"]);
 }
 
 function main() {
@@ -141,6 +145,7 @@ function main() {
   writeFileSync(path.join(targetDirectory, "api-task-definition.json"), `${JSON.stringify(buildApiTask(config), null, 2)}\n`);
   writeFileSync(path.join(targetDirectory, "admin-task-definition.json"), `${JSON.stringify(buildAdminTask(config), null, 2)}\n`);
   writeFileSync(path.join(targetDirectory, "migrate-task-definition.json"), `${JSON.stringify(buildMigrateTask(config), null, 2)}\n`);
+  writeFileSync(path.join(targetDirectory, "seed-task-definition.json"), `${JSON.stringify(buildSeedTask(config), null, 2)}\n`);
 
   console.log(`Generated ECS task definitions in ${targetDirectory}`);
 }
