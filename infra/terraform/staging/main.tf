@@ -575,6 +575,142 @@ resource "aws_iam_role_policy" "github_deploy" {
   })
 }
 
+resource "aws_ecs_task_definition" "api_bootstrap" {
+  family                   = "lwaye-api-${var.environment}-bootstrap"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "512"
+  memory                   = "1024"
+  execution_role_arn       = aws_iam_role.ecs_execution.arn
+  task_role_arn            = aws_iam_role.api_task.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "api"
+      image     = "public.ecr.aws/docker/library/node:20-alpine"
+      essential = true
+      command = [
+        "sh",
+        "-c",
+        "node -e \"require('http').createServer((req,res)=>{res.statusCode=200;res.end('ok')}).listen(4000,'0.0.0.0')\""
+      ]
+      portMappings = [
+        {
+          containerPort = 4000
+          hostPort      = 4000
+          protocol      = "tcp"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.api.name
+          awslogs-region        = var.aws_region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+    }
+  ])
+
+  tags = local.tags
+}
+
+resource "aws_ecs_task_definition" "admin_bootstrap" {
+  family                   = "lwaye-admin-${var.environment}-bootstrap"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_execution.arn
+  task_role_arn            = aws_iam_role.admin_task.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "admin"
+      image     = "public.ecr.aws/docker/library/nginx:stable-alpine"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 80
+          hostPort      = 80
+          protocol      = "tcp"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.admin.name
+          awslogs-region        = var.aws_region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+    }
+  ])
+
+  tags = local.tags
+}
+
+resource "aws_ecs_service" "api" {
+  name            = "lwaye-api-${var.environment}"
+  cluster         = aws_ecs_cluster.this.id
+  task_definition = aws_ecs_task_definition.api_bootstrap.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  deployment_minimum_healthy_percent = 50
+  deployment_maximum_percent         = 200
+
+  network_configuration {
+    subnets          = aws_subnet.private[*].id
+    security_groups  = [aws_security_group.ecs.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.api.arn
+    container_name   = "api"
+    container_port   = 4000
+  }
+
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
+
+  depends_on = [aws_lb_listener_rule.api]
+
+  tags = local.tags
+}
+
+resource "aws_ecs_service" "admin" {
+  name            = "lwaye-admin-${var.environment}"
+  cluster         = aws_ecs_cluster.this.id
+  task_definition = aws_ecs_task_definition.admin_bootstrap.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  deployment_minimum_healthy_percent = 50
+  deployment_maximum_percent         = 200
+
+  network_configuration {
+    subnets          = aws_subnet.private[*].id
+    security_groups  = [aws_security_group.ecs.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.admin.arn
+    container_name   = "admin"
+    container_port   = 80
+  }
+
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
+
+  depends_on = [aws_lb_listener.http]
+
+  tags = local.tags
+}
 resource "aws_db_subnet_group" "this" {
   name       = "${local.name_prefix}-db-subnet-group-v2"
   subnet_ids = aws_subnet.private[*].id
@@ -636,6 +772,7 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   overwrite = true
   tags      = local.tags
 }
+
 
 
 
