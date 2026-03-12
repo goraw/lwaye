@@ -67,3 +67,18 @@ output "staging_task_config" {
   }
   sensitive = true
 }
+output "requested_api_certificate_arn" {
+  value = aws_acm_certificate.api.arn
+}
+
+output "requested_api_certificate_dns_validation_records" {
+  value = [
+    for dvo in aws_acm_certificate.api.domain_validation_options : {
+      domain_name  = dvo.domain_name
+      record_name  = dvo.resource_record_name
+      record_type  = dvo.resource_record_type
+      record_value = dvo.resource_record_value
+    }
+  ]
+}
+

@@ -69,10 +69,16 @@ variable "db_password" {
   sensitive   = true
 }
 
+variable "api_certificate_arn" {
+  description = "Issued ACM certificate ARN for the staging API domain. Leave empty until DNS validation is complete."
+  type        = string
+  default     = ""
+}
 variable "public_api_domain" {
   description = "Public API base URL for admin builds."
   type        = string
   default     = "https://api-staging.lwaye.com"
 }
+
 
 

@@ -5,8 +5,10 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  name_prefix = "lwaye-${var.environment}"
-  azs         = slice(data.aws_availability_zones.available.names, 0, 2)
+  name_prefix   = "lwaye-${var.environment}"
+  azs           = slice(data.aws_availability_zones.available.names, 0, 2)
+  api_hostname  = replace(var.public_api_domain, "https://", "")
+  https_enabled = var.api_certificate_arn != ""
 
   tags = {
     Project     = "lwaye"
@@ -351,10 +353,52 @@ resource "aws_lb_target_group" "admin" {
   tags = local.tags
 }
 
+resource "aws_acm_certificate" "api" {
+  domain_name       = local.api_hostname
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = local.tags
+}
+
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.this.arn
   port              = 80
   protocol          = "HTTP"
+
+  default_action {
+    type = local.https_enabled ? "redirect" : "forward"
+
+    dynamic "redirect" {
+      for_each = local.https_enabled ? [1] : []
+      content {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+
+    dynamic "forward" {
+      for_each = local.https_enabled ? [] : [1]
+      content {
+        target_group {
+          arn = aws_lb_target_group.admin.arn
+        }
+      }
+    }
+  }
+}
+
+resource "aws_lb_listener" "https" {
+  count             = local.https_enabled ? 1 : 0
+  load_balancer_arn = aws_lb.this.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = var.api_certificate_arn
 
   default_action {
     type             = "forward"
@@ -363,7 +407,7 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_lb_listener_rule" "api" {
-  listener_arn = aws_lb_listener.http.arn
+  listener_arn = local.https_enabled ? aws_lb_listener.https[0].arn : aws_lb_listener.http.arn
   priority     = 100
 
   action {
@@ -373,7 +417,7 @@ resource "aws_lb_listener_rule" "api" {
 
   condition {
     host_header {
-      values = [replace(var.public_api_domain, "https://", "")]
+      values = [local.api_hostname]
     }
   }
 }
@@ -772,6 +816,10 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   overwrite = true
   tags      = local.tags
 }
+
+
+
+
 
 
 
