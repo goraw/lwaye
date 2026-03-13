@@ -83,3 +83,7 @@ output "requested_api_certificate_dns_validation_records" {
 }
 
 
+
+output "public_admin_url" {
+  value = var.admin_public_domain
+}

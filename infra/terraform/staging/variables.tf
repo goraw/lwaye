@@ -83,3 +83,14 @@ variable "public_api_domain" {
 
 
 
+variable "admin_public_domain" {
+  description = "Public admin URL for the staging frontend."
+  type        = string
+  default     = "https://admin-staging.lwaylway.com"
+}
+
+variable "hosted_zone_name" {
+  description = "Route 53 hosted zone name used for staging public DNS."
+  type        = string
+  default     = "lwaylway.com"
+}
