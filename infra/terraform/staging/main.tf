@@ -606,6 +606,7 @@ resource "aws_iam_role_policy" "github_deploy" {
           "application-autoscaling:*",
           "acm:*",
           "route53:GetChange",
+          "route53:GetHostedZone",
           "route53:ChangeResourceRecordSets",
           "route53:ListResourceRecordSets",
           "route53:ListHostedZonesByName"
@@ -824,6 +825,7 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   overwrite = true
   tags      = local.tags
 }
+
 
 
 
