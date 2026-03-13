@@ -376,6 +376,7 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_route53_record" "certificate_validation" {
+  allow_overwrite = true
   for_each = {
     for dvo in aws_acm_certificate.api.domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
@@ -397,6 +398,7 @@ resource "aws_acm_certificate_validation" "api" {
 }
 
 resource "aws_route53_record" "api_alias" {
+  allow_overwrite = true
   zone_id = var.hosted_zone_id
   name    = local.api_hostname
   type    = "A"
@@ -409,6 +411,7 @@ resource "aws_route53_record" "api_alias" {
 }
 
 resource "aws_route53_record" "admin_alias" {
+  allow_overwrite = true
   zone_id = var.hosted_zone_id
   name    = local.admin_hostname
   type    = "A"
@@ -825,6 +828,7 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   overwrite = true
   tags      = local.tags
 }
+
 
 
 
