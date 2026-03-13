@@ -1,4 +1,4 @@
-BEGIN;
+﻿BEGIN;
 
 INSERT INTO users (id, phone, verification_status, display_name, preferred_language, profile_type, status, is_phone_verified, is_admin, created_at, updated_at)
 VALUES
@@ -14,18 +14,18 @@ VALUES
 
 INSERT INTO categories (id, slug, label_am, label_en)
 VALUES
-  ('cat-electronics', 'electronics', '????????', 'Electronics'),
-  ('cat-phones', 'phones', '????', 'Phones'),
-  ('cat-home', 'home-goods', '??? ????', 'Home Goods'),
-  ('cat-fashion', 'fashion', '???', 'Fashion'),
-  ('cat-baby', 'baby-items', '????? ????', 'Baby Items');
+  ('cat-electronics', 'electronics', 'ኤሌክትሮኒክስ', 'Electronics'),
+  ('cat-phones', 'phones', 'ስልኮች', 'Phones'),
+  ('cat-home', 'home-goods', 'የቤት ዕቃዎች', 'Home Goods'),
+  ('cat-fashion', 'fashion', 'ፋሽን', 'Fashion'),
+  ('cat-baby', 'baby-items', 'የሕፃናት ዕቃዎች', 'Baby Items');
 
 INSERT INTO locations (id, city, subcity, area_label_am, area_label_en)
 VALUES
-  ('loc-bole', 'Addis Ababa', 'Bole', '??', 'Bole'),
-  ('loc-kirkos', 'Addis Ababa', 'Kirkos', '????', 'Kirkos'),
-  ('loc-yeka', 'Addis Ababa', 'Yeka', '??', 'Yeka'),
-  ('loc-arada', 'Addis Ababa', 'Arada', '???', 'Arada');
+  ('loc-bole', 'Addis Ababa', 'Bole', 'ቦሌ', 'Bole'),
+  ('loc-kirkos', 'Addis Ababa', 'Kirkos', 'ቂርቆስ', 'Kirkos'),
+  ('loc-yeka', 'Addis Ababa', 'Yeka', 'የካ', 'Yeka'),
+  ('loc-arada', 'Addis Ababa', 'Arada', 'አራዳ', 'Arada');
 
 INSERT INTO listings (id, seller_id, title, description, price_etb, negotiable, category_id, condition, location_id, status, created_at, updated_at, published_at)
 VALUES
@@ -51,4 +51,5 @@ VALUES
   ('msg-2', 'thr-1', 'usr-seller-1', 'Yes, available. We can meet in Bole.', '2026-03-05T12:20:00.000Z');
 
 COMMIT;
+
 

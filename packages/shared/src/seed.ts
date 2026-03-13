@@ -1,18 +1,18 @@
-import type { Category, ChatThread, Favorite, Listing, Location, Message, Profile, Report, User } from "./types";
+﻿import type { Category, ChatThread, Favorite, Listing, Location, Message, Profile, Report, User } from "./types";
 
 export const categories: Category[] = [
-  { id: "cat-electronics", slug: "electronics", label: { am: "????????", en: "Electronics" } },
-  { id: "cat-phones", slug: "phones", label: { am: "????", en: "Phones" } },
-  { id: "cat-home", slug: "home-goods", label: { am: "??? ????", en: "Home Goods" } },
-  { id: "cat-fashion", slug: "fashion", label: { am: "???", en: "Fashion" } },
-  { id: "cat-baby", slug: "baby-items", label: { am: "????? ????", en: "Baby Items" } }
+  { id: "cat-electronics", slug: "electronics", label: { am: "ኤሌክትሮኒክስ", en: "Electronics" } },
+  { id: "cat-phones", slug: "phones", label: { am: "ስልኮች", en: "Phones" } },
+  { id: "cat-home", slug: "home-goods", label: { am: "የቤት ዕቃዎች", en: "Home Goods" } },
+  { id: "cat-fashion", slug: "fashion", label: { am: "ፋሽን", en: "Fashion" } },
+  { id: "cat-baby", slug: "baby-items", label: { am: "የሕፃናት ዕቃዎች", en: "Baby Items" } }
 ];
 
 export const locations: Location[] = [
-  { id: "loc-bole", city: "Addis Ababa", subcity: "Bole", areaLabel: { am: "??", en: "Bole" } },
-  { id: "loc-kirkos", city: "Addis Ababa", subcity: "Kirkos", areaLabel: { am: "????", en: "Kirkos" } },
-  { id: "loc-yeka", city: "Addis Ababa", subcity: "Yeka", areaLabel: { am: "??", en: "Yeka" } },
-  { id: "loc-arada", city: "Addis Ababa", subcity: "Arada", areaLabel: { am: "???", en: "Arada" } }
+  { id: "loc-bole", city: "Addis Ababa", subcity: "Bole", areaLabel: { am: "ቦሌ", en: "Bole" } },
+  { id: "loc-kirkos", city: "Addis Ababa", subcity: "Kirkos", areaLabel: { am: "ቂርቆስ", en: "Kirkos" } },
+  { id: "loc-yeka", city: "Addis Ababa", subcity: "Yeka", areaLabel: { am: "የካ", en: "Yeka" } },
+  { id: "loc-arada", city: "Addis Ababa", subcity: "Arada", areaLabel: { am: "አራዳ", en: "Arada" } }
 ];
 
 export const users: User[] = [
@@ -148,4 +148,3 @@ export const messages: Message[] = [
 ];
 
 export const reports: Report[] = [];
-
