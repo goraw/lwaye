@@ -89,8 +89,9 @@ variable "admin_public_domain" {
   default     = "https://admin-staging.lwaylway.com"
 }
 
-variable "hosted_zone_name" {
-  description = "Route 53 hosted zone name used for staging public DNS."
+variable "hosted_zone_id" {
+  description = "Route 53 hosted zone ID used for staging public DNS."
   type        = string
-  default     = "lwaylway.com"
+  default     = "Z02640012COF5HYK5REFW"
 }
+

@@ -335,11 +335,6 @@ resource "aws_lb_target_group" "admin" {
   tags = local.tags
 }
 
-data "aws_route53_zone" "public" {
-  name         = var.hosted_zone_name
-  private_zone = false
-}
-
 resource "aws_acm_certificate" "api" {
   domain_name               = local.api_hostname
   subject_alternative_names = [local.admin_hostname]
@@ -389,7 +384,7 @@ resource "aws_route53_record" "certificate_validation" {
     }
   }
 
-  zone_id = data.aws_route53_zone.public.zone_id
+  zone_id = var.hosted_zone_id
   name    = each.value.name
   type    = each.value.type
   ttl     = 300
@@ -402,7 +397,7 @@ resource "aws_acm_certificate_validation" "api" {
 }
 
 resource "aws_route53_record" "api_alias" {
-  zone_id = data.aws_route53_zone.public.zone_id
+  zone_id = var.hosted_zone_id
   name    = local.api_hostname
   type    = "A"
 
@@ -414,7 +409,7 @@ resource "aws_route53_record" "api_alias" {
 }
 
 resource "aws_route53_record" "admin_alias" {
-  zone_id = data.aws_route53_zone.public.zone_id
+  zone_id = var.hosted_zone_id
   name    = local.admin_hostname
   type    = "A"
 
@@ -609,7 +604,11 @@ resource "aws_iam_role_policy" "github_deploy" {
           "kms:ListAliases",
           "sns:*",
           "application-autoscaling:*",
-          "acm:*"
+          "acm:*",
+          "route53:GetChange",
+          "route53:ChangeResourceRecordSets",
+          "route53:ListResourceRecordSets",
+          "route53:ListHostedZonesByName"
         ]
         Resource = "*"
       },
@@ -825,6 +824,7 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   overwrite = true
   tags      = local.tags
 }
+
 
 
 
