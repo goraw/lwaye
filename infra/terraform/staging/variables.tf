@@ -77,8 +77,9 @@ variable "api_certificate_arn" {
 variable "public_api_domain" {
   description = "Public API base URL for admin builds."
   type        = string
-  default     = "https://api-staging.lwaye.com"
+  default     = "https://api-staging.lwaylway.com"
 }
+
 
 
 

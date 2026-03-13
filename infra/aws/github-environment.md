@@ -16,7 +16,7 @@ Create a GitHub environment named `staging` and set these values.
 - `AWS_ECR_ADMIN_REPOSITORY`
   - Example: `lwaye-admin`
 - `AWS_PUBLIC_API_URL`
-  - Example: `https://api-staging.lwaye.com`
+  - Example: `https://api-staging.lwaylway.com`
 - `AWS_ECS_CLUSTER`
   - Example: `lwaye-staging`
 - `AWS_ECS_API_SERVICE`
@@ -36,3 +36,4 @@ Create a GitHub environment named `staging` and set these values.
 - `AWS_ECS_SUBNETS` and `AWS_ECS_SECURITY_GROUPS` are used by the migration task as well as service updates.
 - If your API and admin services need different security groups, split the workflow later. For the first staging deployment, a shared ECS security group is the simplest path.
 - The API task role should include `sns:Publish` and S3 access through IAM because no static S3 credentials are used.
+

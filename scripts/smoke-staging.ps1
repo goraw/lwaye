@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $baseUrl = "http://lwaye-staging-alb-v2-1447432352.us-east-2.elb.amazonaws.com"
-$hostHeader = "api-staging.lwaye.com"
+$hostHeader = "api-staging.lwaylway.com"
 
 function Invoke-LwayeRequest {
   param(
@@ -146,4 +146,5 @@ try {
 }
 
 $results | Format-Table -AutoSize
+
 
