@@ -540,41 +540,37 @@ resource "aws_iam_role_policy" "github_deploy" {
     Version = "2012-10-17"
     Statement = [
       {
+        Sid    = "TerraformStagingInfra"
         Effect = "Allow"
         Action = [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:CompleteLayerUpload",
-          "ecr:InitiateLayerUpload",
-          "ecr:PutImage",
-          "ecr:UploadLayerPart",
-          "ecr:BatchGetImage"
+          "ec2:*",
+          "elasticloadbalancing:*",
+          "ecs:*",
+          "ecr:*",
+          "rds:*",
+          "iam:*",
+          "logs:*",
+          "s3:*",
+          "ssm:*",
+          "secretsmanager:*",
+          "kms:DescribeKey",
+          "kms:ListAliases",
+          "sns:*",
+          "application-autoscaling:*",
+          "acm:*"
         ]
         Resource = "*"
       },
       {
+        Sid    = "TerraformStateLock"
         Effect = "Allow"
         Action = [
-          "ecs:RegisterTaskDefinition",
-          "ecs:DeregisterTaskDefinition",
-          "ecs:DescribeTaskDefinition",
-          "ecs:UpdateService",
-          "ecs:DescribeServices",
-          "ecs:RunTask",
-          "ecs:DescribeTasks",
-          "ecs:StopTask",
-          "ecs:DescribeClusters"
+          "dynamodb:DescribeTable",
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem"
         ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = ["iam:PassRole"]
-        Resource = [
-          aws_iam_role.ecs_execution.arn,
-          aws_iam_role.api_task.arn,
-          aws_iam_role.admin_task.arn
-        ]
+        Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/lwaye-terraform-locks"
       }
     ]
   })
@@ -777,6 +773,7 @@ resource "aws_ssm_parameter" "s3_public_base_url" {
   overwrite = true
   tags      = local.tags
 }
+
 
 
 
