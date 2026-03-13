@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$baseUrl = "http://lwaye-staging-alb-v2-1447432352.us-east-2.elb.amazonaws.com"
+$baseUrl = "https://api-staging.lwaylway.com"
 $hostHeader = "api-staging.lwaylway.com"
 
 function Invoke-LwayeRequest {
@@ -13,9 +13,7 @@ function Invoke-LwayeRequest {
     [hashtable]$ExtraHeaders = @{}
   )
 
-  $headers = @{
-    Host = $hostHeader
-  }
+  $headers = @{}
 
   foreach ($key in $ExtraHeaders.Keys) {
     $headers[$key] = $ExtraHeaders[$key]
@@ -146,5 +144,6 @@ try {
 }
 
 $results | Format-Table -AutoSize
+
 
 
