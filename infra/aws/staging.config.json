@@ -1,18 +1,18 @@
 {
-  "adminTaskRoleArn": "arn:aws:iam::128055990601:role/lwaye-admin-task-role-staging",
-  "apiTaskRoleArn": "arn:aws:iam::128055990601:role/lwaye-api-task-role-staging",
+  "adminTaskRoleArn": "arn:aws:iam::128055990601:role/lwaylway-admin-task-role-staging",
+  "apiTaskRoleArn": "arn:aws:iam::128055990601:role/lwaylway-api-task-role-staging",
   "environment": "staging",
-  "executionRoleArn": "arn:aws:iam::128055990601:role/lwaye-ecs-execution-role-staging",
+  "executionRoleArn": "arn:aws:iam::128055990601:role/lwaylway-ecs-execution-role-staging",
   "logGroups": {
-    "admin": "/ecs/lwaye-admin-staging",
-    "api": "/ecs/lwaye-api-staging",
-    "migrate": "/ecs/lwaye-migrate-staging"
+    "admin": "/ecs/lwaylway-admin-staging",
+    "api": "/ecs/lwaylway-api-staging",
+    "migrate": "/ecs/lwaylway-migrate-staging"
   },
   "parameters": {
-    "databaseUrl": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/database-url",
-    "s3Bucket": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-bucket",
-    "s3PublicBaseUrl": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-public-base-url",
-    "s3Region": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaye/staging/api/s3-region"
+    "databaseUrl": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaylway/staging/api/database-url",
+    "s3Bucket": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaylway/staging/api/s3-bucket",
+    "s3PublicBaseUrl": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaylway/staging/api/s3-public-base-url",
+    "s3Region": "arn:aws:ssm:us-east-2:128055990601:parameter/lwaylway/staging/api/s3-region"
   },
   "region": "us-east-2"
 }
