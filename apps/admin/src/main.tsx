@@ -229,7 +229,7 @@ function App() {
             <article key={listing.id} className="queueItem">
               <div>
                 <h3>{listing.title}</h3>
-                <p>ETB {listing.priceETB.toLocaleString()} • {listing.status}</p>
+                <p>ETB {listing.priceETB.toLocaleString()} / {listing.status}</p>
               </div>
               <div className="actions">
                 <button className="approve" disabled={busyKey === `listing:${listing.id}`} onClick={() => void updateListingStatus(listing.id, "active")}>Approve</button>
@@ -247,7 +247,7 @@ function App() {
               <article key={report.id} className="queueItem">
                 <div>
                   <h3>{report.reasonCode}</h3>
-                  <p>{report.targetType} • {report.status}</p>
+                  <p>{report.targetType} / {report.status}</p>
                 </div>
                 <button className="resolve" disabled={busyKey === `report:${report.id}`} onClick={() => void resolveReport(report.id)}>Resolve</button>
               </article>
@@ -258,7 +258,10 @@ function App() {
             <div className="panelHeader"><h2>Market taxonomy</h2><button onClick={() => void loadDashboard()}>Refresh</button></div>
             <ul className="categoryList">
               {categories.map((category) => (
-                <li key={category.id}><span>{category.label.en}</span><small>{category.label.am}</small></li>
+                <li key={category.id}>
+                  <span>{category.label.en}</span>
+                  <small className="amharicText" lang="am">{category.label.am}</small>
+                </li>
               ))}
             </ul>
             {!isLoading && categories.length === 0 ? <p className="muted">No categories returned by the API.</p> : null}

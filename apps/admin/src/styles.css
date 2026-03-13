@@ -147,3 +147,6 @@ button {
     grid-template-columns: 1fr;
   }
 }
+.amharicText {
+  font-family: Ebrima, Nyala, "Noto Sans Ethiopic", "Abyssinica SIL", "Segoe UI", sans-serif;
+}
