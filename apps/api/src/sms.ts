@@ -9,7 +9,7 @@ type SmsDeliveryResult = {
 };
 
 function previewOtpCode(code: string): string {
-  return config.nodeEnv === "production" ? "" : code;
+  return config.otpPreviewEnabled ? code : "";
 }
 
 async function sendViaSns(phone: string, code: string) {
@@ -65,4 +65,5 @@ export async function sendVerificationCode(phone: string, code: string): Promise
     previewCode: previewOtpCode(code)
   };
 }
+
 

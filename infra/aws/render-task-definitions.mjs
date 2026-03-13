@@ -47,7 +47,8 @@ function sharedTaskEnvironment(config) {
     environment("SMS_PROVIDER", "sns"),
     environment("SNS_REGION", required(config.region, "region")),
     environment("STORAGE_PROVIDER", "s3"),
-    environment("PUSH_PROVIDER", "expo")
+    environment("PUSH_PROVIDER", "expo"),
+    environment("OTP_PREVIEW_ENABLED", "true")
   ];
 }
 
@@ -151,5 +152,6 @@ function main() {
 }
 
 main();
+
 
 

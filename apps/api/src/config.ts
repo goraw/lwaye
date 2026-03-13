@@ -25,6 +25,7 @@ export const config = {
   port: Number(process.env.PORT ?? 4000),
   databaseUrl: process.env.DATABASE_URL ?? "postgres://lwaye:lwaye@127.0.0.1:5432/lwaye",
   smsProvider: parseProvider<SmsProvider>(process.env.SMS_PROVIDER ?? "", ["console", "sns", "disabled"], process.env.NODE_ENV === "production" ? "disabled" : "console"),
+  otpPreviewEnabled: (process.env.OTP_PREVIEW_ENABLED ?? "").trim().toLowerCase() === "true" || (process.env.NODE_ENV ?? "development") !== "production",
   sns: {
     region: optionalEnv("SNS_REGION") ?? optionalEnv("AWS_REGION"),
     senderId: optionalEnv("SNS_SENDER_ID"),
@@ -60,3 +61,4 @@ export function validateRuntimeConfig() {
     env("S3_PUBLIC_BASE_URL");
   }
 }
+
