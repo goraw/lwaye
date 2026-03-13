@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import type { Listing, Report, User } from "@lwaye/shared";
+import type { Listing, Report, User } from "@lwaylway/shared";
 import { createApp } from "./app";
 import { createApiRouter, type ApiStore } from "./routes";
 
@@ -20,7 +20,7 @@ const adminUser: User = {
   id: "usr-admin-1",
   phone: "+251900000001",
   verificationStatus: "verified",
-  displayName: "Lwaye Admin",
+  displayName: "LwayLway Admin",
   preferredLanguage: "en",
   profileType: "consumer",
   status: "active",
@@ -222,4 +222,5 @@ test("push token registration requires a session", async () => {
 
   assert.equal(response.status, 401);
 });
+
 

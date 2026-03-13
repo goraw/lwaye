@@ -30,13 +30,14 @@ jobs:
         run: npm ci
 
       - name: Build API
-        run: npm run build --workspace @lwaye/api
+        run: npm run build --workspace @lwaylway/api
 
       - name: Test API
-        run: npm run test --workspace @lwaye/api
+        run: npm run test --workspace @lwaylway/api
 
       - name: Build Admin
-        run: npm run build --workspace @lwaye/admin
+        run: npm run build --workspace @lwaylway/admin
 
       - name: Typecheck Mobile
         run: npx tsc -p apps/mobile/tsconfig.json --noEmit
+

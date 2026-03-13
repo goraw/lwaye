@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
-import type { Category, Listing, Report, User } from "@lwaye/shared";
+import type { Category, Listing, Report, User } from "@lwaylway/shared";
 import "./styles.css";
 
 type AdminDashboard = {
@@ -15,7 +15,7 @@ type StartOtpPayload = { phone: string; code: string; expiresAt: string };
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:4000";
 const DEFAULT_ADMIN_PHONE = "+251900000001";
-const DEFAULT_ADMIN_NAME = "Lwaye Admin";
+const DEFAULT_ADMIN_NAME = "LwayLway Admin";
 
 async function readError(response: Response): Promise<string> {
   const payload = (await response.json().catch(() => undefined)) as { message?: string } | undefined;
@@ -172,7 +172,7 @@ function App() {
       <div className="page">
         <aside className="sidebar">
           <div>
-            <p className="eyebrow">Lwaye</p>
+            <p className="eyebrow">LwayLway</p>
             <h1>Admin Console</h1>
             <p className="muted">Sign in with the seeded admin account to access moderation tools.</p>
             <p className="muted">API: {API_BASE_URL}</p>
@@ -206,7 +206,7 @@ function App() {
     <div className="page">
       <aside className="sidebar">
         <div>
-          <p className="eyebrow">Lwaye</p>
+          <p className="eyebrow">LwayLway</p>
           <h1>Admin Console</h1>
           <p className="muted">Moderate listings, triage abuse, and manage Addis Ababa launch taxonomy.</p>
           <p className="muted">Signed in as {adminUser.displayName}</p>
@@ -274,3 +274,4 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <App />
   </React.StrictMode>
 );
+

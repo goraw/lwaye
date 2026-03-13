@@ -1,6 +1,6 @@
-# Lwaye
+# LwayLway
 
-Lwaye is a mobile-first marketplace MVP tailored for the Ethiopian market. This repository is organized as a monorepo with:
+LwayLway is a mobile-first marketplace MVP tailored for the Ethiopian market. This repository is organized as a monorepo with:
 
 - `apps/api`: backend API for auth, listings, chat, favorites, reports, admin moderation, and PostgreSQL schema files
 - `apps/mobile`: React Native app skeleton for buyers and sellers
@@ -113,5 +113,6 @@ The local production compose example includes Postgres, a portable migration job
 1. Apply Terraform and create the first staging environment
 2. Add device-level QA for mobile buyer, seller, and admin flows
 3. Expand server-side blocking and moderation tooling
+
 
 

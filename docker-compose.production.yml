@@ -26,7 +26,7 @@ services:
     environment:
       DATABASE_URL: postgres://lwaye:change-me@postgres:5432/lwaye
       NODE_ENV: production
-    command: ["npm", "run", "migrate", "--workspace", "@lwaye/api"]
+    command: ["npm", "run", "migrate", "--workspace", "@lwaylway/api"]
 
   api:
     build:
@@ -65,4 +65,5 @@ services:
 
 volumes:
   postgres-data:
+
 

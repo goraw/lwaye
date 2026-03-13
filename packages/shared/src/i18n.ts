@@ -2,7 +2,7 @@ import type { Language } from "./types";
 
 export const copy = {
   en: {
-    appName: "Lwaye",
+    appName: "LwayLway",
     tagline: "Buy and sell safely in Addis Ababa",
     browseListings: "Browse listings",
     chat: "Chat",
@@ -32,3 +32,4 @@ export const copy = {
 export function t(language: Language, key: keyof typeof copy.en): string {
   return copy[language][key];
 }
+

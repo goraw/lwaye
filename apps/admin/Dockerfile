@@ -8,9 +8,10 @@ COPY apps/admin/package.json apps/admin/package.json
 COPY packages/shared/package.json packages/shared/package.json
 RUN npm ci
 COPY . .
-RUN npm run build --workspace @lwaye/admin
+RUN npm run build --workspace @lwaylway/admin
 
 FROM nginx:1.27-alpine AS runner
 COPY apps/admin/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/apps/admin/dist /usr/share/nginx/html
 EXPOSE 80
+

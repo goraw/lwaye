@@ -16,7 +16,7 @@ import type {
   StartThreadRequest,
   User,
   VerifyOtpRequest
-} from "@lwaye/shared";
+} from "@lwaylway/shared";
 import { pool } from "./db";
 import { sendVerificationCode } from "./sms";
 import { sendPushNotification } from "./notifications";
@@ -870,6 +870,7 @@ export class MarketplaceStore {
 }
 
 export const store = new MarketplaceStore();
+
 
 
 

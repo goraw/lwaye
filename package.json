@@ -1,5 +1,5 @@
 {
-    "name":  "lwaye",
+    "name":  "lwaylway",
     "version":  "0.1.0",
     "private":  true,
     "workspaces":  [
@@ -7,9 +7,9 @@
                        "packages/*"
                    ],
     "scripts":  {
-                    "dev:api":  "npm --workspace @lwaye/api run dev",
-                    "dev:mobile":  "npm --workspace @lwaye/mobile run dev",
-                    "dev:admin":  "npm --workspace @lwaye/admin run dev",
+                    "dev:api":  "npm --workspace @lwaylway/api run dev",
+                    "dev:mobile":  "npm --workspace @lwaylway/mobile run dev",
+                    "dev:admin":  "npm --workspace @lwaylway/admin run dev",
                     "db:up":  "powershell -ExecutionPolicy Bypass -File ./scripts/db-up.ps1",
                     "db:migrate":  "powershell -ExecutionPolicy Bypass -File ./scripts/db-migrate.ps1",
                     "db:init":  "powershell -ExecutionPolicy Bypass -File ./scripts/db-init.ps1",
@@ -20,3 +20,4 @@
                     "aws:export-staging-config":  "node infra/terraform/staging/export-aws-config.mjs infra/terraform/staging/outputs.json"
                 }
 }
+

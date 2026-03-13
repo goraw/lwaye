@@ -20,7 +20,7 @@ export const users: User[] = [
     id: "usr-admin-1",
     phone: "+251900000001",
     verificationStatus: "verified",
-    displayName: "Lwaye Admin",
+    displayName: "LwayLway Admin",
     preferredLanguage: "en",
     profileType: "consumer",
     status: "active",
@@ -148,3 +148,4 @@ export const messages: Message[] = [
 ];
 
 export const reports: Report[] = [];
+

@@ -1,6 +1,6 @@
 # Terraform staging
 
-This directory owns the AWS staging infrastructure for Lwaye.
+This directory owns the AWS staging infrastructure for LwayLway.
 
 ## What it creates
 
@@ -100,3 +100,4 @@ npm run aws:export-staging-config
 - RDS is private and only reachable from the ECS security group.
 - The S3 bucket is private by default and is accessed through the ECS task role, not static access keys.
 - SMS delivery uses AWS SNS through the API task role.
+

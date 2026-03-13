@@ -117,7 +117,7 @@ try {
         phone             = "+251900000001"
         code              = $previewCode
         preferredLanguage = "en"
-        displayName       = "Lwaye Admin"
+        displayName       = "LwayLway Admin"
       }
 
       $sessionToken = [string]$verify.session.sessionToken
@@ -146,3 +146,4 @@ try {
 }
 
 $results | Format-Table -AutoSize
+

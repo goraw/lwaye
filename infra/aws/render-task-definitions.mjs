@@ -128,11 +128,11 @@ function buildOneOffApiTask(config, family, name, command) {
 }
 
 function buildMigrateTask(config) {
-  return buildOneOffApiTask(config, `lwaye-migrate-${config.environment}`, "migrate", ["npm", "run", "migrate", "--workspace", "@lwaye/api"]);
+  return buildOneOffApiTask(config, `lwaye-migrate-${config.environment}`, "migrate", ["npm", "run", "migrate", "--workspace", "@lwaylway/api"]);
 }
 
 function buildSeedTask(config) {
-  return buildOneOffApiTask(config, `lwaye-seed-${config.environment}`, "seed", ["npm", "run", "seed", "--workspace", "@lwaye/api"]);
+  return buildOneOffApiTask(config, `lwaye-seed-${config.environment}`, "seed", ["npm", "run", "seed", "--workspace", "@lwaylway/api"]);
 }
 
 function main() {
@@ -151,3 +151,4 @@ function main() {
 }
 
 main();
+

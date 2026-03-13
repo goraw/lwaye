@@ -11,7 +11,7 @@
       "name": "migrate",
       "image": "REPLACE_ME",
       "essential": true,
-      "command": ["npm", "run", "migrate", "--workspace", "@lwaye/api"],
+      "command": ["npm", "run", "migrate", "--workspace", "@lwaylway/api"],
       "environment": [
         { "name": "NODE_ENV", "value": "production" },
         { "name": "SMS_PROVIDER", "value": "sns" },
@@ -36,3 +36,4 @@
     }
   ]
 }
+
