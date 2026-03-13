@@ -62,7 +62,7 @@ function sharedTaskSecrets(config) {
 
 function buildApiTask(config) {
   return {
-    family: `lwaye-api-${config.environment}`,
+    family: `lwaylway-api-${config.environment}`,
     networkMode: "awsvpc",
     requiresCompatibilities: ["FARGATE"],
     cpu: "512",
@@ -85,7 +85,7 @@ function buildApiTask(config) {
 
 function buildAdminTask(config) {
   return {
-    family: `lwaye-admin-${config.environment}`,
+    family: `lwaylway-admin-${config.environment}`,
     networkMode: "awsvpc",
     requiresCompatibilities: ["FARGATE"],
     cpu: "256",
@@ -128,11 +128,11 @@ function buildOneOffApiTask(config, family, name, command) {
 }
 
 function buildMigrateTask(config) {
-  return buildOneOffApiTask(config, `lwaye-migrate-${config.environment}`, "migrate", ["npm", "run", "migrate", "--workspace", "@lwaylway/api"]);
+  return buildOneOffApiTask(config, `lwaylway-migrate-${config.environment}`, "migrate", ["npm", "run", "migrate", "--workspace", "@lwaylway/api"]);
 }
 
 function buildSeedTask(config) {
-  return buildOneOffApiTask(config, `lwaye-seed-${config.environment}`, "seed", ["npm", "run", "seed", "--workspace", "@lwaylway/api"]);
+  return buildOneOffApiTask(config, `lwaylway-seed-${config.environment}`, "seed", ["npm", "run", "seed", "--workspace", "@lwaylway/api"]);
 }
 
 function main() {
@@ -151,4 +151,5 @@ function main() {
 }
 
 main();
+
 

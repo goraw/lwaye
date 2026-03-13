@@ -19,11 +19,11 @@ output "ecs_cluster_name" {
 }
 
 output "ecs_api_service_name" {
-  value = "lwaye-api-${var.environment}"
+  value = "lwaylway-api-${var.environment}"
 }
 
 output "ecs_admin_service_name" {
-  value = "lwaye-admin-${var.environment}"
+  value = "lwaylway-admin-${var.environment}"
 }
 
 output "ecs_private_subnet_ids" {
@@ -81,4 +81,5 @@ output "requested_api_certificate_dns_validation_records" {
     }
   ]
 }
+
 

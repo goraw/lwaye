@@ -5,13 +5,13 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  name_prefix   = "lwaye-${var.environment}"
+  name_prefix   = "lwaylway-${var.environment}"
   azs           = slice(data.aws_availability_zones.available.names, 0, 2)
   api_hostname  = replace(var.public_api_domain, "https://", "")
   https_enabled = var.api_certificate_arn != ""
 
   tags = {
-    Project     = "lwaye"
+    Project     = "lwaylway"
     Environment = var.environment
     ManagedBy   = "terraform"
   }
@@ -208,45 +208,38 @@ resource "aws_security_group" "rds" {
 }
 
 resource "aws_ecr_repository" "api" {
-  name                 = "lwaye-api"
+  name                 = "lwaylway-api"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
   }
 
-  tags = local.tags
+  force_delete = true
 
-  lifecycle {
-    prevent_destroy = true
-  }
+  tags = local.tags
 }
 
 resource "aws_ecr_repository" "admin" {
-  name                 = "lwaye-admin"
+  name                 = "lwaylway-admin"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
   }
 
-  tags = local.tags
+  force_delete = true
 
-  lifecycle {
-    prevent_destroy = true
-  }
+  tags = local.tags
 }
 
 resource "aws_s3_bucket" "media" {
-  bucket = "lwaye-${var.environment}-media-${var.aws_region}"
+  bucket        = "lwaylway-${var.environment}-media-${var.aws_region}"
+  force_destroy = true
 
   tags = merge(local.tags, {
     Name = "${local.name_prefix}-media"
   })
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_s3_bucket_public_access_block" "media" {
@@ -267,33 +260,21 @@ resource "aws_s3_bucket_versioning" "media" {
 }
 
 resource "aws_cloudwatch_log_group" "api" {
-  name              = "/ecs/lwaye-api-${var.environment}"
+  name              = "/ecs/lwaylway-api-${var.environment}"
   retention_in_days = 14
   tags              = local.tags
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_cloudwatch_log_group" "admin" {
-  name              = "/ecs/lwaye-admin-${var.environment}"
+  name              = "/ecs/lwaylway-admin-${var.environment}"
   retention_in_days = 14
   tags              = local.tags
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_cloudwatch_log_group" "migrate" {
-  name              = "/ecs/lwaye-migrate-${var.environment}"
+  name              = "/ecs/lwaylway-migrate-${var.environment}"
   retention_in_days = 14
   tags              = local.tags
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_ecs_cluster" "this" {
@@ -423,7 +404,7 @@ resource "aws_lb_listener_rule" "api" {
 }
 
 resource "aws_iam_role" "ecs_execution" {
-  name = "lwaye-ecs-execution-role-${var.environment}"
+  name = "lwaylway-ecs-execution-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -439,10 +420,6 @@ resource "aws_iam_role" "ecs_execution" {
   })
 
   tags = local.tags
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_execution_managed" {
@@ -451,7 +428,7 @@ resource "aws_iam_role_policy_attachment" "ecs_execution_managed" {
 }
 
 resource "aws_iam_role_policy" "ecs_execution_secrets" {
-  name = "lwaye-ecs-execution-secrets-${var.environment}"
+  name = "lwaylway-ecs-execution-secrets-${var.environment}"
   role = aws_iam_role.ecs_execution.id
 
   policy = jsonencode({
@@ -461,36 +438,28 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
         Effect = "Allow"
         Action = ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParametersByPath"]
         Resource = [
-          "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/lwaye/${var.environment}/api/*"
+          "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/lwaylway/${var.environment}/api/*"
         ]
       }
     ]
   })
 }
 resource "aws_iam_role" "api_task" {
-  name = "lwaye-api-task-role-${var.environment}"
+  name = "lwaylway-api-task-role-${var.environment}"
 
   assume_role_policy = aws_iam_role.ecs_execution.assume_role_policy
   tags               = local.tags
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_iam_role" "admin_task" {
-  name = "lwaye-admin-task-role-${var.environment}"
+  name = "lwaylway-admin-task-role-${var.environment}"
 
   assume_role_policy = aws_iam_role.ecs_execution.assume_role_policy
   tags               = local.tags
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_iam_role_policy" "api_task" {
-  name = "lwaye-api-task-policy-${var.environment}"
+  name = "lwaylway-api-task-policy-${var.environment}"
   role = aws_iam_role.api_task.id
 
   policy = jsonencode({
@@ -500,7 +469,7 @@ resource "aws_iam_role_policy" "api_task" {
         Effect = "Allow"
         Action = ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParametersByPath"]
         Resource = [
-          "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/lwaye/${var.environment}/api/*"
+          "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/lwaylway/${var.environment}/api/*"
         ]
       },
       {
@@ -530,14 +499,10 @@ resource "aws_iam_openid_connect_provider" "github" {
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
 
   tags = local.tags
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_iam_role" "github_deploy" {
-  name = "github-actions-lwaye-${var.environment}-deploy"
+  name = "github-actions-lwaylway-${var.environment}-deploy"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -565,14 +530,10 @@ resource "aws_iam_role" "github_deploy" {
   })
 
   tags = local.tags
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_iam_role_policy" "github_deploy" {
-  name = "github-actions-lwaye-${var.environment}-deploy-policy"
+  name = "github-actions-lwaylway-${var.environment}-deploy-policy"
   role = aws_iam_role.github_deploy.id
 
   policy = jsonencode({
@@ -620,7 +581,7 @@ resource "aws_iam_role_policy" "github_deploy" {
 }
 
 resource "aws_ecs_task_definition" "api_bootstrap" {
-  family                   = "lwaye-api-${var.environment}-bootstrap"
+  family                   = "lwaylway-api-${var.environment}-bootstrap"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
@@ -660,7 +621,7 @@ resource "aws_ecs_task_definition" "api_bootstrap" {
 }
 
 resource "aws_ecs_task_definition" "admin_bootstrap" {
-  family                   = "lwaye-admin-${var.environment}-bootstrap"
+  family                   = "lwaylway-admin-${var.environment}-bootstrap"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -695,7 +656,7 @@ resource "aws_ecs_task_definition" "admin_bootstrap" {
 }
 
 resource "aws_ecs_service" "api" {
-  name            = "lwaye-api-${var.environment}"
+  name            = "lwaylway-api-${var.environment}"
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.api_bootstrap.arn
   desired_count   = 1
@@ -726,7 +687,7 @@ resource "aws_ecs_service" "api" {
 }
 
 resource "aws_ecs_service" "admin" {
-  name            = "lwaye-admin-${var.environment}"
+  name            = "lwaylway-admin-${var.environment}"
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.admin_bootstrap.arn
   desired_count   = 1
@@ -786,7 +747,7 @@ resource "aws_db_instance" "this" {
 }
 
 resource "aws_ssm_parameter" "database_url" {
-  name      = "/lwaye/${var.environment}/api/database-url"
+  name      = "/lwaylway/${var.environment}/api/database-url"
   type      = "SecureString"
   value     = "postgres://${var.db_username}:${urlencode(var.db_password)}@${aws_db_instance.this.address}:5432/${var.db_name}?uselibpqcompat=true&sslmode=require"
   overwrite = true
@@ -794,7 +755,7 @@ resource "aws_ssm_parameter" "database_url" {
 }
 
 resource "aws_ssm_parameter" "s3_bucket" {
-  name      = "/lwaye/${var.environment}/api/s3-bucket"
+  name      = "/lwaylway/${var.environment}/api/s3-bucket"
   type      = "String"
   value     = aws_s3_bucket.media.bucket
   overwrite = true
@@ -802,7 +763,7 @@ resource "aws_ssm_parameter" "s3_bucket" {
 }
 
 resource "aws_ssm_parameter" "s3_region" {
-  name      = "/lwaye/${var.environment}/api/s3-region"
+  name      = "/lwaylway/${var.environment}/api/s3-region"
   type      = "String"
   value     = var.aws_region
   overwrite = true
@@ -810,12 +771,16 @@ resource "aws_ssm_parameter" "s3_region" {
 }
 
 resource "aws_ssm_parameter" "s3_public_base_url" {
-  name      = "/lwaye/${var.environment}/api/s3-public-base-url"
+  name      = "/lwaylway/${var.environment}/api/s3-public-base-url"
   type      = "String"
   value     = "https://${aws_s3_bucket.media.bucket}.s3.${var.aws_region}.amazonaws.com"
   overwrite = true
   tags      = local.tags
 }
+
+
+
+
 
 
 
